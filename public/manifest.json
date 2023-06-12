@@ -1,0 +1,70 @@
+{
+    "manifest_version": 3,
+    
+    "name": "Sísifo Ruy Andrade",
+    "description": "Esta extensão facilita o cadastro de processos do escritório Ruy Andrade Advogados Associados",
+    "author": "César Rodriguez",
+    "version": "1.1.1",
+
+    "action": {
+        "default_icon": {
+            "16": "images/sisifo-ico-16.png",
+            "32": "images/sisifo-ico-32.png",
+            "192": "images/sisifo-ico-192.png",
+            "256": "images/sisifo-ico-256.png"
+        },
+        "default_title": "Sísifo Ruy Andrade",
+        "default_popup": "popup.html"
+    },
+
+    "options_ui": {
+        "page": "options.html",
+        "open_in_tab": false
+    },
+    
+    "icons": {
+        "16": "images/sisifo-ico-16.png",
+        "32": "images/sisifo-ico-32.png",
+        "192": "images/sisifo-ico-192.png",
+        "256": "images/sisifo-ico-256.png"
+    },
+    
+    "permissions": [
+        "identity",
+        "storage"
+    ],
+
+    "host_permissions": [
+        "*://projudi.tjba.jus.br/*",
+        "*://pje.tjba.jus.br/*"
+    ],
+    
+    "background": {
+        "service_worker": "worker.js"
+    },
+    
+    "content_scripts": [{
+        "matches": [
+            "https://projudi.tjba.jus.br/*",
+            "https://pje.tjba.jus.br/*"
+        ],
+        "all_frames": true,
+        "run_at": "document_end",
+        "js": [
+            "content.js"
+        ]
+    }],
+
+    "web_accessible_resources": [{
+        "resources": ["timelineLoader.js"],
+        "matches": ["https://pje.tjba.jus.br/*"]
+
+    }],
+
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAq1y5dieWFWONoNQnfyhGJWvh4dXJJ6MYQ7w13yYR/KyzvCSBJ+Ue0i8UfNREBmEmRjdRkr83uM/utS4OZuFNWNRna35gYlQ4+TpXL9SYb5b38CzIIxnGk9k08Bmp/lAtsO+OYpA7V4R6yIkMcXfdRdkRAymPct8rGz0mOPM/nKHtTBn3XXO2XpdXEC/2OZt3ZmAZq0ZsPxuZSScXUhsYFH+tNuAaThebCewWwEB0pIOGE29el1qxwDZP8IwnaGtSeWQxA7YCWfWEh090sHANOoGDAL14QBT3NgVhdn7iZt9Kt0Z643hnDi+Xk0WyzzHJc5YVYmEjuhpIFSJZPxrl6QIDAQAB",
+
+    "oauth2": {
+        "client_id": "835592926858-mr1u32jkduds271bh9jppumuqh99ekol.apps.googleusercontent.com",
+        "scopes": ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+    }
+}
