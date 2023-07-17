@@ -317,7 +317,6 @@ class Drafter {
         if (!Array.isArray(names)) names = [ names ]
         const onlyOneEmptyString = names.length === 1 && (names[0] == "" || names[0] == undefined)
         if (names.length === 0 || onlyOneEmptyString) return undefined
-        console.log({names})
         return names.map(name => {
             const filteredOptions = Drafter.#filterSajOptions(allResponsaveisList, {...filterTemplate, val: name})
             if (filteredOptions !== undefined) return filteredOptions[0]
