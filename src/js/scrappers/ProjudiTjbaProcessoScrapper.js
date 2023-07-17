@@ -110,25 +110,26 @@ static #getElementFollowingCellSearchedByTextContent({parentElement, firstGuessQ
 }
 
 static #getDateFromProjudiTjbaDateString(dateStr) {
+    const timeDiffFromGmt = '-03:00'
     const dateStrWithoutPrepositions = dateStr.trim().replaceAll(/(de )|(às )|( h)/g, '')
     const dateStrDividedBySpaces = dateStrWithoutPrepositions.replaceAll(':', ' ')
     const dateArray = dateStrDividedBySpaces.split(' ')
     const meses = {
-        'Janeiro': 0,
-        'Fevereiro': 1,
-        'Março': 2,
-        'Abril': 3,
-        'Maio': 4,
-        'Junho': 5,
-        'Julho': 6,
-        'Agosto': 7,
-        'Setembro': 8,
-        'Outubro': 9,
-        'Novembro': 10,
-        'Dezembro': 11   
+        'Janeiro': '01',
+        'Fevereiro': '02',
+        'Março': '03',
+        'Abril': '04',
+        'Maio': '05',
+        'Junho': '06',
+        'Julho': '07',
+        'Agosto': '08',
+        'Setembro': '09',
+        'Outubro': '10',
+        'Novembro': '11',
+        'Dezembro': '12' 
     }
     dateArray[1] = meses[dateArray[1]]
-    return new Date(dateArray[2], dateArray[1], dateArray[0], dateArray[3], dateArray[4], dateArray[5] ?? null)
+    return new Date(`${dateArray[2]}-${dateArray[1]}-${dateArray[0]}T${dateArray[3]}:${dateArray[4]}:${dateArray[5] ?? '00'}${timeDiffFromGmt}`)
 }
 
 static #getValorDaCausa() {
