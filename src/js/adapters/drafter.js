@@ -67,13 +67,13 @@ class Drafter {
         }
         const fetchedValues = await fetchGoogleSheetRowsMatchingExpression("gts", grupoDeTrabalhoName, token)
         if (!fetchedValues.found) throw fetchedValues.value
-        const [ , advsNames, coordenadoresNames, estagiariosNames, controladoriaNames ] = fetchedValues.value
+        const [ , , advsNames, coordenadoresNames, estagiariosNames, controladoriaNames ] = fetchedValues.value
         const namesArrays = [ advsNames, coordenadoresNames, estagiariosNames, controladoriaNames ]
             .map(commaSeparatedNames => commaSeparatedNames.split(",")
             .map(name => name.trim()))
-        const [ allMembers, advs, coordenadores, estagiarios, controladoria ] = namesArrays
+        const [ coordenadores, advs, estagiarios, controladoria ] = namesArrays
             .map(nameArray => Drafter.#getGtEntities(nameArray, allResponsaveisList))
-        return { advs, coordenadores, estagiarios, controladoria }
+        return { coordenadores, advs, estagiarios, controladoria }
     }
     
     async #getAdaptedPartes() {
@@ -317,6 +317,7 @@ class Drafter {
         if (!Array.isArray(names)) names = [ names ]
         const onlyOneEmptyString = names.length === 1 && (names[0] == "" || names[0] == undefined)
         if (names.length === 0 || onlyOneEmptyString) return undefined
+        console.log({names})
         return names.map(name => {
             const filteredOptions = Drafter.#filterSajOptions(allResponsaveisList, {...filterTemplate, val: name})
             if (filteredOptions !== undefined) return filteredOptions[0]
