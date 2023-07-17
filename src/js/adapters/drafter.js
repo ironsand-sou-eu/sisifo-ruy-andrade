@@ -71,7 +71,7 @@ class Drafter {
         const namesArrays = [ advsNames, coordenadoresNames, estagiariosNames, controladoriaNames ]
             .map(commaSeparatedNames => commaSeparatedNames.split(",")
             .map(name => name.trim()))
-        const [ advs, coordenadores, estagiarios, controladoria ] = namesArrays
+        const [ allMembers, advs, coordenadores, estagiarios, controladoria ] = namesArrays
             .map(nameArray => Drafter.#getGtEntities(nameArray, allResponsaveisList))
         return { advs, coordenadores, estagiarios, controladoria }
     }
