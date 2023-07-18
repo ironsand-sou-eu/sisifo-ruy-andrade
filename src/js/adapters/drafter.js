@@ -256,6 +256,7 @@ class Drafter {
             = await Promise.all(responses.map(response => extractOptionsArray(response)))
         sajProcesso.vara = getProjurisItem("vara", varasList)
         sajProcesso.tipoVara = getProjurisItem("tipoVara", tiposVaraList)
+        sajProcesso.complementoVara = juizoInfo.comarca
         sajProcesso.instanciaCnj = getProjurisItem("instanciaCnj", isntanciasCnjList)
         sajProcesso.orgaoJudicial = getProjurisItem("orgaoJudicial", orgaosJudiciaisList)
         sajProcesso.tipoJustica = getProjurisItem("tipoJustica", tiposJusticaList, { key: "chave", operator: "insensitiveStrictEquality", val: codTipoJustica }, codTipoJustica)
