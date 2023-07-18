@@ -132,11 +132,12 @@ function filterGoogleTarefasByProcessoSide(googleTarefas, clientSide) {
 }
 
 function adaptGoogleInfoTarefaToProjuris (tarefaGoogleInfo, sajTarefas, tarefasParams) {
-    const { tiposTarefa, gtCrew, audienciaFutura: {data: dataAudiencia} } = tarefasParams
+    const { tiposTarefa, gtCrew, audienciaFutura } = tarefasParams
+    const dataAudiencia = audienciaFutura?.data
     const [ , , nomeTarefa, detalhe, observacao,
         teamsResponsible, prazoPrevistoString, prazoFatalString ] = tarefaGoogleInfo
     if (!dataAudiencia &&
-        (prazoPrevistoString.includes("Aud") || prazoFatalString.includes("Aud"))) return
+        (prazoPrevistoString.toLowerCase().includes("aud") || prazoFatalString.toLowerCase().includes("aud"))) return
     const sajTarefa = new SajTarefaDataStructure()
     const tipoTarefa = tiposTarefa
         .filter(tipoTarefa => tipoTarefa.nomeTipoTarefa.toLowerCase() === nomeTarefa.toLowerCase())
@@ -201,7 +202,7 @@ function getBaseDate(dateString, audienciaDate) {
 }
 
 function getModifier(dateString) {
-    const whatToReplace = dateString.toLowerCase().includes("aud") ? "Aud" : "D"
+    const whatToReplace = dateString.toLowerCase().includes("aud") ? "aud" : "d"
     return Number(dateString.toLowerCase()
         .trim()
         .replace(whatToReplace, "")
