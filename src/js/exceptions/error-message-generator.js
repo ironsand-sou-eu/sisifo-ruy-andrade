@@ -12,7 +12,8 @@ const textualReferenceType = {
     andamento: "um andamento",
     tarefa: "tarefas para um grupo de trabalho",
     gts: "um grupo de trabalho",
-    usuario: "um usuário"
+    usuario: "um usuário",
+    pedido: "um pedido"
 };
 
 const gSheetUrl = {
@@ -24,7 +25,8 @@ const gSheetUrl = {
     juizo: gSheetsUrls.frontendBase + gSheetsUrls.juizosSheetId,
     andamento: gSheetsUrls.frontendBase + gSheetsUrls.andamentosSheetId,
     tarefa: gSheetsUrls.frontendBase + gSheetsUrls.tarefasSheetId,
-    gts: gSheetsUrls.frontendBase + gSheetsUrls.gtsSheetId
+    gts: gSheetsUrls.frontendBase + gSheetsUrls.gtsSheetId,
+    pedido: gSheetsUrls.frontendBase + gSheetsUrls.pedidosProvisionamentosSheetId
 };
 
 function linkOrText(type, text) {

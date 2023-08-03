@@ -415,10 +415,11 @@ class Drafter {
     }
     
     async #getAdaptedPedidos(clientName, dataDistribuicao, causasDePedir = []) {
-        const pedidos = await this.#getStandardPedidosByClientAndCausaPedir(clientName, dataDistribuicao, causasDePedir)
-        const pedidosList = await this.#fetchRelevantPedidosSajData(pedidos)
-        this.#pushNomeAndCodigoIntoPedidos(pedidos, pedidosList)
-        return pedidos
+        const sajPedidos = { values: [], errorMsgs: [] }
+        sajPedidos.values = await this.#getStandardPedidosByClientAndCausaPedir(clientName, dataDistribuicao, causasDePedir)
+        const pedidosList = await this.#fetchRelevantPedidosSajData(sajPedidos.values)
+        this.#pushNomeAndCodigoIntoPedidos(sajPedidos, pedidosList)
+        return sajPedidos
     
         // As linhas abaixo eram para usar os pedidos cadastrados pelo autor (e não da planilha de provisionamento)
         // const cadastradosAutor = this.#processoInfo.pedidos.map(pedido => {
@@ -449,9 +450,13 @@ class Drafter {
         return await Promise.all(responses.map(async response => await extractOptionsArray(response)))
     }
     
-    #pushNomeAndCodigoIntoPedidos(pedidos, list) {
-        pedidos.forEach((pedido, index) => {
+    #pushNomeAndCodigoIntoPedidos(sajPedidos, list) {
+        sajPedidos.values.forEach((pedido, index) => {
             const relatedTypes = list[index]
+            if (relatedTypes === "no content") {
+                sajPedidos.errorMsgs.push(generateErrMsg.noMatchInSaj(pedido.nomePedido, "pedido"))
+                return
+            }
             const type = relatedTypes.filter(type => type.valor === pedido.nomePedido)
             pedido.codigoPedido = type[0].chave
             pedido.nomePedido = type[0].valor
