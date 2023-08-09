@@ -36,7 +36,7 @@ function PedidosBox(props) {
                 <label className="sisifo-label centered f-size"></label>
             </div>
             <div className="col-sm-12 inputGroupContainer">
-                {props.pedidos?.map((pedido, index) => (
+                {props.pedidos?.values.map((pedido, index) => (
                     <Pedido
                         key={i++}
                         index={index}
