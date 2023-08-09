@@ -1,3 +1,9 @@
+===================== Versão 1.1.4 ====================
+1.1.301 - ISSUE - Ajuste do componente PedidosBox para
+    a nova estrutura da array de pedidos, que agora é
+    um objeto contem values e errorMsgs.
+
+
 ===================== Versão 1.1.3 ====================
 1.1.301 - ISSUE - Criada mensagem de erro amigável para
     pedidos.
