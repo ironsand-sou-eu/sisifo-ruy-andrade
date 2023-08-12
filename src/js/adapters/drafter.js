@@ -14,6 +14,9 @@ import generateErrMsg from "../exceptions/error-message-generator"
 class Drafter {
     static #errorMsgFallback = "Ocorreu uma falha, vide mensagens de erro"
     static #filterTemplate = { key: "valor", operator: "insensitiveStrictEquality" }
+    static #nomeSistemaProjuris = {
+        projudiTjba: "PROJUDI"
+    }
     #tiposParticipacao
     #processoInfo
     #googleToken
@@ -251,8 +254,8 @@ class Drafter {
         sajProcesso.tipoInstancia = juizoInfo.tipoInstancia
         const promises = this.#makeSajProcessoFetches(codTipoJustica, juizoInfo.comarca)
         const responses = await Promise.all(promises)
-        const [varasList, tiposVaraList, isntanciasCnjList, orgaosJudiciaisList, 
-            tiposJusticaList, areasList, fasesList, gtsList]
+        const [ varasList, tiposVaraList, isntanciasCnjList, orgaosJudiciaisList, 
+            tiposJusticaList, areasList, fasesList, gtsList, camposDinamicosList ]
             = await Promise.all(responses.map(response => extractOptionsArray(response)))
         sajProcesso.vara = getProjurisItem("vara", varasList)
         sajProcesso.tipoVara = getProjurisItem("tipoVara", tiposVaraList)
@@ -272,7 +275,8 @@ class Drafter {
             return sajProcesso
         }
         sajProcesso.classeCnj = this.#fetchCnjItem(this.#processoInfo.tipoDeAcao, "classe")
-        sajProcesso.assuntoCnj = this.#fetchCnjItem(this.#processoInfo.causaDePedir, "assunto")    
+        sajProcesso.assuntoCnj = this.#fetchCnjItem(this.#processoInfo.causaDePedir, "assunto")
+        sajProcesso.campoDinamicoDadoWs = this.#getCamposDinamicosProjuris(camposDinamicosList)
         return sajProcesso
     }
     
@@ -295,7 +299,8 @@ class Drafter {
             fetchSajInfo(endPoints.tiposJustica),
             fetchSajInfo(endPoints.areas),
             fetchSajInfo(endPoints.fases),
-            fetchSajInfo(endPoints.gruposTrabalho)
+            fetchSajInfo(endPoints.gruposTrabalho),
+            fetchSajInfo(endPoints.camposDinamicos)
         ]
     }
     
@@ -367,6 +372,44 @@ class Drafter {
         })
         if (oneLevelChildrenArray.length === 0) return []
         else return this.#recursivelyGetMenuItem(oneLevelChildrenArray, searchTermsPath)
+    }
+
+    #getCamposDinamicosProjuris(camposDinamicosList) {
+        const numOrgaoSegundoGrau = { campoDinamicoTipo: "LISTA_SELECAO_UNICA", codigoCampoDinamico: 1186 }
+        const tipoOrgaoSegundoGrau = { campoDinamicoTipo: "LISTA_SELECAO_UNICA", codigoCampoDinamico: 1185 }
+        const relatorSegundoGrau = { campoDinamicoTipo: "LISTA_MULTIPLA_SELECAO", codigoCampoDinamico: 1189 }
+        const numOrgaoTerceiroGrau = { campoDinamicoTipo: "LISTA_SELECAO_UNICA", codigoCampoDinamico: 1187 }
+        const tipoOrgaoTerceiroGrau = { campoDinamicoTipo: "LISTA_SELECAO_UNICA", codigoCampoDinamico: 1188 }
+        const faturamento = { campoDinamicoTipo: "LISTA_MULTIPLA_SELECAO", codigoCampoDinamico: 4138 }
+        const sistema = this.#getSistemaProjuris(camposDinamicosList)
+        const valorInicialLiquidacao = { campoDinamicoTipo: "TEXTO_LONGO", codigoCampoDinamico: 4330 }
+        const temasProcessuais = { campoDinamicoTipo: "LISTA_MULTIPLA_SELECAO", codigoCampoDinamico: 4689 }
+        return [ numOrgaoSegundoGrau, tipoOrgaoSegundoGrau, relatorSegundoGrau, numOrgaoTerceiroGrau,
+            tipoOrgaoTerceiroGrau, faturamento, sistema, valorInicialLiquidacao, temasProcessuais ]
+    }
+
+    #getSistemaProjuris(camposDinamicosList) {
+        const sistemasInfo = this.#getSistemasList(camposDinamicosList)
+        const sistemaProjurisInfo = this.#getSistemaProjurisInfo(sistemasInfo)
+        return {
+            campoDinamicoTipo: "LISTA_SELECAO_UNICA",
+            codigoCampoDinamico: 3941,
+            campoDinamicoItemListaSelecionado: sistemaProjurisInfo.codigo
+        }
+    }
+
+    #getSistemasList(camposDinamicosList) {
+        const sistemasInfo = camposDinamicosList.filter(campoDinamico => campoDinamico.nome === "Sistema")
+        if (sistemasInfo.length == 0) return null
+        return sistemasInfo[0].campoDinamicoItemLista
+    }
+
+    #getSistemaProjurisInfo(sistemasList) {
+        if (!sistemasList || sistemasList?.length == 0) return null
+        const nomeSistemaProjuris = Drafter.#nomeSistemaProjuris[this.#processoInfo.sistema]
+        const sistemaMatches = sistemasList.filter(sistema => sistema.nome.toLowerCase() === nomeSistemaProjuris.toLowerCase())
+        if (!sistemaMatches || sistemaMatches.length == 0) return null
+        return sistemaMatches[0]
     }
 
     async #getAdaptedAndamentos() {

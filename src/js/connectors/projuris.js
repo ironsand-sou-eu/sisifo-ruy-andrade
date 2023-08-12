@@ -13,6 +13,7 @@ const endPoints = {
     gruposTrabalho: "/grupo/",
     responsaveis: "/usuario/",
     instanciasCnj: "/processo/instancia-cnj/",
+    camposDinamicos: "/campo-dinamico/3/13",
     tiposParticipacao: "/processo/participacao-tipo/obter-arvore-completa/",
     tiposTarefa: "/tarefa-tipo/consulta",
     tiposAndamento: "/andamento-tipo/consulta?",
@@ -91,6 +92,7 @@ async function extractOptionsArray(sajFetchResponse) {
     if (jsonResp.processoConsultaWs) return jsonResp.processoConsultaWs
     if (jsonResp.pessoaConsulta) return jsonResp.pessoaConsulta
     if (jsonResp.pessoaConsultaSimples) return jsonResp.pessoaConsultaSimples
+    if (jsonResp.campoDinamicoWs) return jsonResp.campoDinamicoWs
     return
 }
 
