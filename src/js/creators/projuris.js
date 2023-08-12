@@ -202,6 +202,7 @@ async function adjustAndAttachAndamentosToProcesso(andamentos, codigoProcesso) {
 }
 
 async function attachPedidosToProcesso(pedidos, codigoProcesso) {
+    if (pedidos.values.length == 0) return
     const params = {
         entitiesArray: pedidos,
         endpoint: endPoints.criarPedido + codigoProcesso,

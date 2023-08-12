@@ -27,7 +27,6 @@ async function finalizeProcessoInfo(sajEverything, confirmedInfo, resultSetter) 
 
     finalAdaptProcesso(sajProcessoMerged)
     finalAdaptPartes(sajPartesMerged)
-    // TODO: alertar quanto aos andamentos que tiverem .errorMsg - throw new AndamentoNotFoundException(andamento.nomeAdaptadoAoCliente)
     finalAdaptAndamentos(sajAndamentosMerged, sajProcessoMerged.responsaveis)
     
     createAll({ sajProcesso: sajProcessoMerged, sajPartes: sajPartesMerged, sajTarefas: sajTarefasMerged, sajAndamentos: sajAndamentosMerged, sajPedidos: sajPedidosMerged }, msgSetter)
