@@ -31,13 +31,11 @@ class Drafter {
         if (Drafter.hasErrors([this.#processoInfo])) return { hasErrors: true, errorMsgs: this.#processoInfo.errorMsgs }
     
         const sajPartes = await this.#getAdaptedPartes()
-        //TODO: implement error handling
         
         const tarefasParams = await this.#getTarefasParams(this.#processoInfo.audienciaFutura)
         const sajProcesso = await this.#getAdaptedProcesso(sajPartes.clientRole[0], tarefasParams.allResponsaveisList)
         const sajAndamentos = await this.#getAdaptedAndamentos()
         const sajPedidos = await this.#getAdaptedPedidos(sajPartes.clientRole[0]?.clientName, sajProcesso.dataDistribuicao)
-        //TODO: implement error handling inside AdaptedPedidos
         const errors = Drafter.hasErrors([sajProcesso, sajAndamentos, sajPedidos])
         if (errors) return { hasErrors: true, errorMsgs: errors }
         return {
@@ -380,7 +378,7 @@ class Drafter {
         const relatorSegundoGrau = { campoDinamicoTipo: "LISTA_MULTIPLA_SELECAO", codigoCampoDinamico: 1189 }
         const numOrgaoTerceiroGrau = { campoDinamicoTipo: "LISTA_SELECAO_UNICA", codigoCampoDinamico: 1187 }
         const tipoOrgaoTerceiroGrau = { campoDinamicoTipo: "LISTA_SELECAO_UNICA", codigoCampoDinamico: 1188 }
-        const faturamento = { campoDinamicoTipo: "LISTA_MULTIPLA_SELECAO", codigoCampoDinamico: 4138 }
+        const faturamento = this.#getFaturamentoProjuris(camposDinamicosList)
         const sistema = this.#getSistemaProjuris(camposDinamicosList)
         const valorInicialLiquidacao = { campoDinamicoTipo: "TEXTO_LONGO", codigoCampoDinamico: 4330 }
         const temasProcessuais = { campoDinamicoTipo: "LISTA_MULTIPLA_SELECAO", codigoCampoDinamico: 4689 }
@@ -388,9 +386,19 @@ class Drafter {
             tipoOrgaoTerceiroGrau, faturamento, sistema, valorInicialLiquidacao, temasProcessuais ]
     }
 
+    #getFaturamentoProjuris(camposDinamicosList) {
+        const faturamentosInfo = this.#getItemsList(camposDinamicosList, 4138)
+        const faturamentoProjurisInfo = this.#getItemsInfo(faturamentosInfo, "Não faturado")
+        return {
+            campoDinamicoTipo: "LISTA_MULTIPLA_SELECAO",
+            codigoCampoDinamico: 4138,
+            itensSelecionadosLista: [ faturamentoProjurisInfo.codigo ]
+        }
+    }
+
     #getSistemaProjuris(camposDinamicosList) {
-        const sistemasInfo = this.#getSistemasList(camposDinamicosList)
-        const sistemaProjurisInfo = this.#getSistemaProjurisInfo(sistemasInfo)
+        const sistemasInfo = this.#getItemsList(camposDinamicosList, 3941)
+        const sistemaProjurisInfo = this.#getItemsInfo(sistemasInfo, Drafter.#nomeSistemaProjuris[this.#processoInfo.sistema])
         return {
             campoDinamicoTipo: "LISTA_SELECAO_UNICA",
             codigoCampoDinamico: 3941,
@@ -398,11 +406,19 @@ class Drafter {
         }
     }
 
-    #getSistemasList(camposDinamicosList) {
-        const sistemasInfo = camposDinamicosList.filter(campoDinamico => campoDinamico.nome === "Sistema")
-        if (sistemasInfo.length == 0) return null
-        return sistemasInfo[0].campoDinamicoItemLista
+    #getItemsList(camposDinamicosList, codigoCampoDinamico) {
+        const itemsInfo = camposDinamicosList.filter(campoDinamico => campoDinamico.codigo === codigoCampoDinamico)
+        if (itemsInfo.length == 0) return null
+        return itemsInfo[0].campoDinamicoItemLista
     }
+
+    #getItemsInfo(itemsList, itemName) {
+        if (!itemsList || itemsList?.length == 0) return null
+        const matches = itemsList.filter(item => item.nome.toLowerCase() === itemName.toLowerCase())
+        if (!matches || matches.length == 0) return null
+        return matches[0]
+    }
+
 
     #getSistemaProjurisInfo(sistemasList) {
         if (!sistemasList || sistemasList?.length == 0) return null
