@@ -5,6 +5,7 @@
 body {
     color: rgb(var(--ruy-andrade-color));
     width: 98vw;
+    min-width: 98vw;
 }
 
 ul {
