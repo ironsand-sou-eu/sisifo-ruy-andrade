@@ -42,7 +42,7 @@ class Drafter {
             sajProcesso,
             sajPartes,
             sajAndamentos: sajAndamentos.values,
-            sajPedidos: sajPedidos,
+            sajPedidos: sajPedidos.values,
             tarefasParams,
             hasErrors: false
         }
