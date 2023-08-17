@@ -29,6 +29,7 @@ async function finalizeProcessoInfo(sajEverything, confirmedInfo, resultSetter) 
     finalAdaptPartes(sajPartesMerged)
     finalAdaptAndamentos(sajAndamentosMerged, sajProcessoMerged.responsaveis)
     
+    // console.log({ sajProcesso: sajProcessoMerged, sajPartes: sajPartesMerged, sajTarefas: sajTarefasMerged, sajAndamentos: sajAndamentosMerged, sajPedidos: sajPedidosMerged }, msgSetter)
     createAll({ sajProcesso: sajProcessoMerged, sajPartes: sajPartesMerged, sajTarefas: sajTarefasMerged, sajAndamentos: sajAndamentosMerged, sajPedidos: sajPedidosMerged }, msgSetter)
 }
 
