@@ -15,7 +15,8 @@ class Drafter {
     static #errorMsgFallback = "Ocorreu uma falha, vide mensagens de erro"
     static #filterTemplate = { key: "valor", operator: "insensitiveStrictEquality" }
     static #nomeSistemaProjuris = {
-        projudiTjba: "PROJUDI"
+        projuditjba: "PROJUDI",
+        pje1gtjba: "PJE"
     }
     #tiposParticipacao
     #processoInfo
@@ -398,7 +399,7 @@ class Drafter {
 
     #getSistemaProjuris(camposDinamicosList) {
         const sistemasInfo = this.#getItemsList(camposDinamicosList, 3941)
-        const sistemaProjurisInfo = this.#getItemsInfo(sistemasInfo, Drafter.#nomeSistemaProjuris[this.#processoInfo.sistema])
+        const sistemaProjurisInfo = this.#getItemsInfo(sistemasInfo, Drafter.#nomeSistemaProjuris[this.#processoInfo.sistema.toLowerCase()])
         return {
             campoDinamicoTipo: "LISTA_SELECAO_UNICA",
             codigoCampoDinamico: 3941,
