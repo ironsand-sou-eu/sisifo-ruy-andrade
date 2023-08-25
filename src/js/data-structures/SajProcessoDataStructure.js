@@ -1,8 +1,10 @@
+import hardcoded from "../hardcodedValues"
+
 class SajProcessoDataStructure
 {
     constructor(situacaoProcesso = { chave: 1, valor: "Ativo" },
-        unidadeOrganizacionalOrigem = { chave: 37221, valor: "Ruy Andrade Advocacia Empresarial" },
-        unidadeOrganizacionalAtual = { chave: 37221, valor: "Ruy Andrade Advocacia Empresarial" },
+        unidadeOrganizacionalOrigem = hardcoded.unidadeOrganizacional.RuyAndrade,
+        unidadeOrganizacionalAtual = hardcoded.unidadeOrganizacional.RuyAndrade,
         gruposDeTrabalho, responsaveis, assunto, valorAcao, descricao, tipoProcesso = "J",
         tipoJustica, vara, tipoVara, complementoVara, dataDistribuicao, dataCitacao,
         area, fase, tipoInstancia = "PRIMEIRA_INSTANCIA",
