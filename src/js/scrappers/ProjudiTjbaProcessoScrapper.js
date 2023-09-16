@@ -129,7 +129,13 @@ static #getDateFromProjudiTjbaDateString(dateStr) {
         'Dezembro': '12' 
     }
     dateArray[1] = meses[dateArray[1]]
-    return new Date(`${dateArray[2]}-${dateArray[1]}-${dateArray[0]}T${dateArray[3]}:${dateArray[4]}:${dateArray[5] ?? '00'}${timeDiffFromGmt}`)
+    const year = String(dateArray[2]).padStart(4, "0")
+    const month = String(dateArray[1])
+    const day = String(dateArray[0]).padStart(2, "0")
+    const hour = String(dateArray[3]).padStart(2, "0")
+    const minute = String(dateArray[4]).padStart(2, "0")
+    const second = String(dateArray[5] ?? "00").padStart(2, "0")
+    return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}${timeDiffFromGmt}`)
 }
 
 static #getValorDaCausa() {
