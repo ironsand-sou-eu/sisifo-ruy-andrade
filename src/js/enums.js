@@ -1,4 +1,4 @@
-const tiposParte = Object.freeze({
+export const tiposParte = Object.freeze({
     requerente: 'autor',
     requerido: 'réu',
     testemunha: 'testemunha',
@@ -11,7 +11,7 @@ const tiposParte = Object.freeze({
     servidor: 'servidor'
 })
 
-const sajTipoEnvolvidoType = Object.freeze({
+export const sajTipoEnvolvidoType = Object.freeze({
     requerente: 'PARTE_ATIVA',
     requerido: 'PARTE_PASSIVA',
     terceiro: 'TERCEIRO',
@@ -28,7 +28,7 @@ const sajTipoEnvolvidoType = Object.freeze({
 
 })
 
-const tiposPedido = Object.freeze({
+export const tiposPedido = Object.freeze({
     danoMoral: 'Indenização por danos morais',
     danoMaterial: 'Indenizaçao por danos materiais',
     cancelamentoContrato: 'Cancelamento de contrato',
@@ -38,10 +38,13 @@ const tiposPedido = Object.freeze({
     parcelamento: 'Realização de parcelamento'
 })
 
-const tiposContingencia = Object.freeze({
+export const tiposContingencia = Object.freeze({
     provavel: 'Provável',
     possivel: 'Possível',
     remoto: 'Remoto'
 })
 
-export { tiposParte, tiposPedido, tiposContingencia, sajTipoEnvolvidoType }
+export const sistemas = Object.freeze({
+    tjbaProjudi: 'projudiTjba',
+    tjba: 'Possível'
+})

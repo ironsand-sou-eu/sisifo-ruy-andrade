@@ -1,7 +1,7 @@
 import ProcessoDataStructure from "../data-structures/ProcessoDataStructure"
 import UnidadeJurisdicionalDataStructure from "../data-structures/UnidadeJurisdicionalDataStructure"
 import NotProcessoHomepageException from "../exceptions/NotProcessoHomepageException"
-import { tiposParte } from "../enums"
+import { sistemas, tiposParte } from "../enums"
 import ProjudiTjbaAndamentosScrapper from "./ProjudiTjbaAndamentosScrapper"
 import ProjudiTjbaPartesScrapper from "./ProjudiTjbaPartesScrapper"
 
@@ -51,7 +51,7 @@ static #loadPageCheckpoints() {
 static async #ScrappeProcessoInfo() {
     this.#andamentos = await this.#getAndamentos()
     const processoInfo = new ProcessoDataStructure(
-        this.#getNumero(), "projudiTjba", this.#getNumeroRegional(), this.#getUrl(), this.#getDataDistribuicao(),
+        this.#getNumero(), sistemas.tjbaProjudi, this.#getNumeroRegional(), this.#getUrl(), this.#getDataDistribuicao(),
         this.#getValorDaCausa(), this.#getTipoDeAcao(), this.#getCausaDePedir(),
         this.#getSegredoJustica(), this.#getJuizo(), this.#getJuizAtual(),
         this.#getNumeroProcessoPrincipal(), this.#getNumerosIncidentes(),
@@ -149,7 +149,7 @@ static #getValorDaCausa() {
 
     let valorDaCausa = projudiValorDaCausaString.trim().replace(/(R\$ )|(\.)/g, '')
     valorDaCausa = valorDaCausa.replace(',', '.')
-    return valorDaCausa 
+    return Number(valorDaCausa)
 }
 
 static #getTipoDeAcao() {
@@ -277,7 +277,6 @@ static #getAudienciaFutura() {
     const audienciaRelatedAndamentos = this.#filterAudienciaConcerningAndamentos(this.#andamentos)
     const lastRelevantAudiencia = this.#getLastAudienciaOrNullIfCancelled(audienciaRelatedAndamentos)
     if(!lastRelevantAudiencia) return null
-
     const audienciaProjudiDateString = lastRelevantAudiencia.observacao.match(this.#PROJUDI_EXTENDED_DATE_REGEX)[0]
     const audienciaFutura = {...lastRelevantAudiencia,
         data: this.#getDateFromProjudiTjbaDateString(audienciaProjudiDateString),
