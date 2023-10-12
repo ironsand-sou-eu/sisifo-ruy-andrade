@@ -1,8 +1,8 @@
 import envVars from "../envVars"
 import compareWithOperator from "../utils/utils"
 
-const endPoints = {
-    assuntosSaj: "/assunto/consulta/",
+export const endPoints = {
+    assuntosProjuris: "/assunto/consulta/",
     assuntosCnj: "/processo/assunto/",
     tiposJustica: "/tipo?chave-tipo=processo-justica",
     orgaoJudicial: "/tipo?chave-tipo=processo-orgao-judicial",
@@ -28,24 +28,24 @@ const endPoints = {
     criarTarefa: "/tarefa"
 }
 
-async function getSajAuthTokenWithinExpiration() {
-    const tokenResponse = await chrome.storage.local.get(["sajToken", "sajExpiration"])
+async function getProjurisAuthTokenWithinExpiration() {
+    const tokenResponse = await chrome.storage.local.get(["projurisToken", "projurisExpiration"])
     const tokenResponseIsEmpty = Object.keys(tokenResponse).length === 0
-    if (tokenResponseIsEmpty === true) return await fetchAndStoreNewSajAuthToken()
-    const tokenExpired = tokenResponse.sajExpiration < new Date().getTime()
-    if (tokenExpired) return await fetchAndStoreNewSajAuthToken()
-    return tokenResponse.sajToken
+    if (tokenResponseIsEmpty === true) return await fetchAndStoreNewProjurisAuthToken()
+    const tokenExpired = tokenResponse.projurisExpiration < new Date().getTime()
+    if (tokenExpired) return await fetchAndStoreNewProjurisAuthToken()
+    return tokenResponse.projurisToken
 }
 
-async function fetchAndStoreNewSajAuthToken() {
-    const tokenObj = await fetchSajAuthToken()
+async function fetchAndStoreNewProjurisAuthToken() {
+    const tokenObj = await fetchProjurisAuthToken()
     await chrome.storage.local.set(tokenObj)
-    return tokenObj.sajToken
+    return tokenObj.projurisToken
 }
 
-async function fetchSajAuthToken() {
-    const sajLoginUri = `https://login-api.projurisadv.com.br/adv-bouncer-authorization-server/oauth/token`
-    const secret = `${envVars.SAJ_API_CLIENT_ID}:${envVars.SAJ_API_CLIENT_SECRET}`
+async function fetchProjurisAuthToken() {
+    const projurisLoginUri = `https://login-api.projurisadv.com.br/adv-bouncer-authorization-server/oauth/token`
+    const secret = `${envVars.PROJURIS_API_CLIENT_ID}:${envVars.PROJURIS_API_CLIENT_SECRET}`
     const secretHash = btoa(secret)
 
     const params = {
@@ -55,21 +55,21 @@ async function fetchSajAuthToken() {
             Authorization: `Basic ${secretHash}`,
             "Content-Type": "application/x-www-form-urlencoded"
         },
-        body: `grant_type=password&username=${envVars.SAJ_API_USERNAME}$$${envVars.SAJ_API_DOMAIN}&password=${envVars.SAJ_API_PASSWORD}`
+        body: `grant_type=password&username=${envVars.PROJURIS_API_USERNAME}$$${envVars.PROJURIS_API_DOMAIN}&password=${envVars.PROJURIS_API_PASSWORD}`
     }
-    const response = await fetch(sajLoginUri, params)
+    const response = await fetch(projurisLoginUri, params)
     const tokenData = await response.json()
     const now = new Date()
-    const sajExpiration = now.getTime() + (tokenData.expires_in * 1000)
+    const projurisExpiration = now.getTime() + (tokenData.expires_in * 1000)
     return {
-        sajToken: tokenData.access_token,
-        sajExpiration
+        projurisToken: tokenData.access_token,
+        projurisExpiration
     }
 }
 
-async function fetchSajInfo (endPoint) {
+export default async function fetchProjurisInfo (endPoint) {
     const uri = `https://api.projurisadv.com.br/adv-service/${endPoint}`.replaceAll(`/${endPoint}`, `${endPoint}`)
-    const token = await getSajAuthTokenWithinExpiration()
+    const token = await getProjurisAuthTokenWithinExpiration()
     const params = {
         method: "GET",
         async: true,
@@ -80,9 +80,9 @@ async function fetchSajInfo (endPoint) {
     return fetch(uri, params)
 }
 
-async function extractOptionsArray(sajFetchResponse) {
-    if (sajFetchResponse.status === 204) return "no content"
-    const jsonResp = await sajFetchResponse.json()
+export async function extractOptionsArray(projurisFetchResponse) {
+    if (projurisFetchResponse.status === 204) return "no content"
+    const jsonResp = await projurisFetchResponse.json()
     if (jsonResp.simpleDto) return jsonResp.simpleDto
     if (jsonResp.consultaTipoRetorno && jsonResp.consultaTipoRetorno[0].simpleDto) return jsonResp.consultaTipoRetorno[0].simpleDto
     if (jsonResp.nodeWs) return jsonResp.nodeWs
@@ -96,8 +96,8 @@ async function extractOptionsArray(sajFetchResponse) {
     return
 }
 
-async function loadSimpleOptions (endPoint, filterObject = undefined, shallMap = true) {
-    const optionsPromise = await fetchSajInfo(endPoint)
+export async function loadSimpleOptions (endPoint, filterObject = undefined, shallMap = true) {
+    const optionsPromise = await fetchProjurisInfo(endPoint)
     const rawOptions = await extractOptionsArray(optionsPromise)
     let flattenedOptions
     if (filterObject?.flattenOptions) {
@@ -129,9 +129,9 @@ async function loadSimpleOptions (endPoint, filterObject = undefined, shallMap =
     }
 }
 
-async function makeProjurisPost (endPoint, body) {
+export async function makeProjurisPost (endPoint, body) {
     const uri = `https://api.projurisadv.com.br/adv-service/${endPoint}`.replaceAll(`/${endPoint}`, `${endPoint}`)
-    const token = await getSajAuthTokenWithinExpiration()
+    const token = await getProjurisAuthTokenWithinExpiration()
     const params = {
         method: "POST",
         async: true,
@@ -145,7 +145,7 @@ async function makeProjurisPost (endPoint, body) {
     return fetch(uri, params)
 }
 
-function flattenObjectsArray(objsArray, parent, res = []){
+export function flattenObjectsArray(objsArray, parent, res = []){
     objsArray.forEach(obj => {
         const { chave, valor, nodeWs: children } = obj
         res.push({ chave, valor, parent })
@@ -155,6 +155,3 @@ function flattenObjectsArray(objsArray, parent, res = []){
     })
     return res;
 }
-
-export default fetchSajInfo
-export { makeProjurisPost, loadSimpleOptions, extractOptionsArray, flattenObjectsArray, endPoints }

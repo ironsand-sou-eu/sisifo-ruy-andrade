@@ -1,6 +1,6 @@
 import hardcoded from "../hardcodedValues"
 
-export default class SajProcessoDataStructure
+export default class ProjurisProcessoDataStructure
 {
     constructor(situacaoProcesso = { chave: 1, valor: "Ativo" },
         unidadeOrganizacionalOrigem = hardcoded.unidadeOrganizacional.RuyAndrade,

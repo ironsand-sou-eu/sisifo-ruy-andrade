@@ -1,4 +1,4 @@
-export default class SajTarefaDataStructure
+export default class ProjurisTarefaDataStructure
 {
     constructor(
         codigoProcesso, compromisso = false, possuiRecorrencia = false,

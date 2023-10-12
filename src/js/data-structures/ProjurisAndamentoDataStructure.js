@@ -1,4 +1,4 @@
-export default class SajAndamentoDataStructure
+export default class ProjurisAndamentoDataStructure
 {
     constructor(codigoRegistroVinculo, descricaoAndamento, dataAndamento,
         horaAndamento, codigoTipoAndamento, responsaveis, privado = true) {

@@ -1,7 +1,7 @@
-import fetchSajInfo, { makeProjurisPost, loadSimpleOptions,
+import fetchProjurisInfo, { makeProjurisPost, loadSimpleOptions,
     extractOptionsArray, flattenObjectsArray, endPoints } from "../projuris"
 
-describe("fetchSajInfo", () => {    
+describe("fetchProjurisInfo", () => {    
     it("should connect to Projuris and retrieve a list of areas", async () => {
         // const get = jest.fn()
         // global.chrome = {
@@ -13,7 +13,7 @@ describe("fetchSajInfo", () => {
         //         }
         //     }
         // }
-        // const response = await fetchSajInfo(endPoints.areas)
+        // const response = await fetchProjurisInfo(endPoints.areas)
         // console.log(response)
         // expect(token).not.toBe("")
     })

@@ -1,4 +1,4 @@
-function useSajTranslator() {
+export default function useProjurisTranslator() {
     function insertValueLabel(object) {
         if (!object) return object
         if (Array.isArray(object)) return object.map(obj => insertValueLabel(obj))
@@ -19,5 +19,3 @@ function useSajTranslator() {
     
     return { insertValueLabel, removeValueLabel }
 }
-
-export default useSajTranslator

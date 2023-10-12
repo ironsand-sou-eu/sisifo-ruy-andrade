@@ -1,4 +1,4 @@
-export default class SajPedidoDataStructure
+export default class ProjurisPedidoDataStructure
 {
     constructor(nomePedido, codigoPedido, dataPedido = new Date(), valorPedido,
         valorProvisionado, tipoCorrecaoMonetaria, situacaoPedido, observacao,

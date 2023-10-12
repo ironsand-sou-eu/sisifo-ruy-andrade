@@ -13,7 +13,7 @@ function App() {
     const [result, setResult] = useState({ success: [], processing: [], fail: [] });
     const { msgSetter } = useMsgSetter(result, setResult);
     const [formData, setFormData] = useState()
-    const [processoSajData, setProcessoSajData] = useState(null)
+    const [processoProjurisData, setProcessoProjurisData] = useState(null)
     const [loading, setLoading] = useState({ scrapping: true, creating: false })
 
     function updateFormData(newData, changedInput) {
@@ -25,12 +25,12 @@ function App() {
     function onSubmit(e) {
         e.preventDefault()
         setLoading({ scrapping: false, creating: true })
-        finalizeProcessoInfo(processoSajData, formData, msgSetter)
+        finalizeProcessoInfo(processoProjurisData, formData, msgSetter)
     }
 
     function handleAdaptedInfoErrors() {
         if (!adaptedInfoHasErrors()) return
-        processoSajData.errorMsgs.forEach(errorMsg => {msgSetter.addMsg({
+        processoProjurisData.errorMsgs.forEach(errorMsg => {msgSetter.addMsg({
             type: "fail",
             msg: errorMsg
         })})
@@ -38,7 +38,7 @@ function App() {
     }
 
     function adaptedInfoHasErrors() {
-        if (processoSajData?.hasErrors) return true
+        if (processoProjurisData?.hasErrors) return true
         else return false
     }
 
@@ -46,46 +46,43 @@ function App() {
         () => {
             if (adaptedInfoHasErrors()) handleAdaptedInfoErrors()
         },
-        [processoSajData]
+        [processoProjurisData]
     )
 
     useEffect(debounce(() => {
-        if (processoSajData !== null) return
+        if (processoProjurisData !== null) return
         chrome.runtime.sendMessage({
                 from: "sisifoPopup",
                 subject: "query-processo-info-to-show"
             },
             response => {
-                setProcessoSajData(response)
+                setProcessoProjurisData(response)
             }
         )
-    }, [processoSajData]))
+    }, [processoProjurisData]))
 
     useEffect(() => {
-        if (processoSajData === null) return
+        if (processoProjurisData === null) return
         setLoading({ scrapping: false, creating: false })
         if (adaptedInfoHasErrors()) return
+        const {
+            projurisProcesso: {
+                processoNumeroWs: [{numeroDoProcesso}], assuntoCnj, area, tipoJustica, vara, tipoVara, fase,
+                gruposDeTrabalho, responsaveis, segredoJustica
+            },
+            projurisPartes: { partesRequerentes, partesRequeridas },
+            responsaveisList,
+            projurisPedidos
+        } = processoProjurisData
         const data = {
-            numeroProcesso: processoSajData.sajProcesso.processoNumeroWs[0].numeroDoProcesso,
-            assuntoCnj: processoSajData.sajProcesso.assuntoCnj,
+            numeroDoProcesso, area, tipoJustica, vara, tipoVara, assuntoCnj, fase, responsaveisList, gruposDeTrabalho,
+            responsaveis, segredoJustica, partesRequerentes, partesRequeridas, projurisPedidos,
             assunto: null,
-            area: processoSajData.sajProcesso.area,
-            tipoJustica: processoSajData.sajProcesso.tipoJustica,
-            vara: processoSajData.sajProcesso.vara,
-            tipoVara: processoSajData.sajProcesso.tipoVara,
             dataCitacao: new Date().toISOString().substring(0, 10),
             dataRecebimento: new Date().toISOString().substring(0, 10),
-            fase: processoSajData.sajProcesso.fase,
-            allResponsaveis: processoSajData.responsaveisList,
-            gruposDeTrabalho: processoSajData.sajProcesso.gruposDeTrabalho,
-            responsaveis: processoSajData.sajProcesso.responsaveis,
-            segredoJustica: processoSajData.sajProcesso.segredoJustica,
-            partesRequerentes: processoSajData.sajPartes.partesRequerentes,
-            partesRequeridas: processoSajData.sajPartes.partesRequeridas,
-            pedidos: processoSajData.sajPedidos
         }
         setFormData(data)
-    }, [processoSajData])
+    }, [processoProjurisData])
 
     return (
         <LoadingContext.Provider value={loading}>

@@ -1,28 +1,28 @@
-import fetchSajInfo, { endPoints, extractOptionsArray, makeProjurisPost } from "../connectors/projuris";
-import SajParteDataStructure from "../data-structures/SajPessoaDataStructure";
+import fetchProjurisInfo, { endPoints, extractOptionsArray, makeProjurisPost } from "../connectors/projuris";
+import ProjurisParteDataStructure from "../data-structures/ProjurisPessoaDataStructure";
 import ProcessoAlreadyExistsException from "../exceptions/ProcessoAlreadyExistsException";
 
 let msgSetter
 
-async function createAll({ sajProcesso, sajPartes, sajTarefas, sajAndamentos, sajPedidos }, resultSetter) {
+async function createAll({ projurisProcesso, projurisPartes, projurisTarefas, projurisAndamentos, projurisPedidos }, resultSetter) {
     msgSetter = resultSetter
     msgSetter.setSingleProcessingMsg("Verificando se o processo já está cadastrado..." )
-    const numeroProcesso = sajProcesso.processoNumeroWs[0].numeroDoProcesso
+    const numeroProcesso = projurisProcesso.processoNumeroWs[0].numeroDoProcesso
     const codigoProcessoIfExists = await checkIfProcessoAlreadyExists(numeroProcesso)
     if (codigoProcessoIfExists) {
         throw new ProcessoAlreadyExistsException(codigoProcessoIfExists, numeroProcesso, msgSetter)
     }
-    const envolvidos = await ensurePeopleExists(sajPartes)
-    const codigoProcesso = await createProcesso(sajProcesso)
+    const envolvidos = await ensurePeopleExists(projurisPartes)
+    const codigoProcesso = await createProcesso(projurisProcesso)
     await attachPessoasToProcesso(envolvidos, codigoProcesso)
-    await adjustAndAttachTarefasToProcesso(sajTarefas, codigoProcesso)
-    await adjustAndAttachAndamentosToProcesso(sajAndamentos, codigoProcesso)
-    await attachPedidosToProcesso(sajPedidos, codigoProcesso)
+    await adjustAndAttachTarefasToProcesso(projurisTarefas, codigoProcesso)
+    await adjustAndAttachAndamentosToProcesso(projurisAndamentos, codigoProcesso)
+    await attachPedidosToProcesso(projurisPedidos, codigoProcesso)
     msgSetter.clear({ type: "processing" })
 }
 
 async function checkIfProcessoAlreadyExists(numeroProcesso) {
-    const response = await fetchSajInfo(endPoints.buscarProcessoPorNumero + numeroProcesso)
+    const response = await fetchProjurisInfo(endPoints.buscarProcessoPorNumero + numeroProcesso)
     const result = await extractOptionsArray(response)
     if (result.length > 0) return result[0].codigoProcesso
     return false
@@ -78,11 +78,11 @@ Array.prototype.uniqueValuesByCpfCnpj = function() {
 }
 
 async function createPessoa(pessoa) {
-    const sajPessoa = new SajParteDataStructure(pessoa.nomePessoa, pessoa.cpfCnpj,
+    const projurisPessoa = new ProjurisParteDataStructure(pessoa.nomePessoa, pessoa.cpfCnpj,
         pessoa.flagSemCpfCnpj, pessoa.justificativaSemCpfCnpj, pessoa.tipoPessoa,
         pessoa.observacaoGeral, pessoa.telefone, pessoa.email, pessoa.habilitado,
         pessoa.profissao)
-    const body = JSON.stringify(sajPessoa)
+    const body = JSON.stringify(projurisPessoa)
     const response = await makeProjurisPost(endPoints.criarPessoa, body)
     if (!(response.status && response.status >=200 && response.status < 300 )) {
         msgSetter.addMsg({ type: "fail", msg: `Erro ao criar a pessoa ${pessoa.nomePessoa}. Por favor, faça a criação manualmente.` })

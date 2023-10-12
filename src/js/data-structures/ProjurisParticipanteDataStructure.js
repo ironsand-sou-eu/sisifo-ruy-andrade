@@ -1,4 +1,4 @@
-export default class SajParticipanteDataStructure
+export default class ProjurisParticipanteDataStructure
 {
     constructor(nomePessoa, codigoPessoa, cpfCnpj, flagSemCpfCnpj = false,
         justificativaSemCpfCnpj, tipoPessoa, observacaoGeral, telefone, email,

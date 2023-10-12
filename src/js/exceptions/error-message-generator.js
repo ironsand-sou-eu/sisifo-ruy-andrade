@@ -45,7 +45,7 @@ const generateErrMsg = {
         + `${linkOrText(type, "planilha correspondente")} e tente novamente.`
     },
 
-    noMatchInSaj: (missingEntry, type) => {
+    noMatchInProjuris: (missingEntry, type) => {
         return `Não encontramos ${textualReferenceType[type]} correspondente a `
         + `<span class="copy">${missingEntry}</span> no Projuris. Confira as `
         + `informações no Projuris e na ${linkOrText(type, "planilha correspondente")} `

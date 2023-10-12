@@ -11,7 +11,7 @@ export const tiposParte = Object.freeze({
     servidor: 'servidor'
 })
 
-export const sajTipoEnvolvidoType = Object.freeze({
+export const projurisTipoEnvolvidoType = Object.freeze({
     requerente: 'PARTE_ATIVA',
     requerido: 'PARTE_PASSIVA',
     terceiro: 'TERCEIRO',

@@ -67,7 +67,7 @@ function PopupForm({ onSubmit, data, updateData }) {
                 <Select
                     name="assunto"
                     label="Assunto Projuris"
-                    optionsEndpoint={endPoints.assuntosSaj}
+                    optionsEndpoint={endPoints.assuntosProjuris}
                     filter={{...filter, key: "nomeAssunto"}}
                     value={data?.assunto}
                     onChange={updateData}

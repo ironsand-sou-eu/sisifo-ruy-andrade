@@ -1,47 +1,49 @@
 import { fetchGoogleSheetRowsMatchingExpression } from "../connectors/google-sheets"
 import createAll from "../creators/projuris"
-import SajTarefaDataStructure from "../data-structures/SajTarefaDataStructure"
+import ProjurisTarefaDataStructure from "../data-structures/ProjurisTarefaDataStructure"
 import Exception from "../exceptions/Exception"
 import generateErrMsg from "../exceptions/error-message-generator"
 import Drafter from "./drafter"
 
 let msgSetter
 
-async function finalizeProcessoInfo(sajEverything, confirmedInfo, resultSetter) {
+async function finalizeProcessoInfo(projurisEverything, confirmedInfo, resultSetter) {
     msgSetter = resultSetter
-    const { sajProcessoMerged, sajPartesMerged, sajAndamentosMerged, sajPedidosMerged,
-        tarefasParams } = await mergeConfirmedInfo(sajEverything, confirmedInfo)
-    const polo = identifyClientsPolo(sajPartesMerged)
+    const { projurisProcessoMerged, projurisPartesMerged, projurisAndamentosMerged, projurisPedidosMerged,
+        tarefasParams } = await mergeConfirmedInfo(projurisEverything, confirmedInfo)
+    const polo = identifyClientsPolo(projurisPartesMerged)
     try {
-        const gtCrew = await Drafter.getGtCrew(sajProcessoMerged.gruposDeTrabalho.valor, tarefasParams.allResponsaveisList)
-        gtCrew.gt = sajProcessoMerged.gruposDeTrabalho
-        gtCrew.advs = sajProcessoMerged.responsaveis
+        const gtCrew = await Drafter.getGtCrew(projurisProcessoMerged.gruposDeTrabalho.valor, tarefasParams.allResponsaveisList)
+        gtCrew.gt = projurisProcessoMerged.gruposDeTrabalho
+        gtCrew.advs = projurisProcessoMerged.responsaveis
         tarefasParams.gtCrew = gtCrew
     } catch(e) {
         throw new Exception(e, msgSetter)
     }
     tarefasParams.clientsPoloProcessual = polo
-    const sajTarefas = await getAdaptedTarefas(tarefasParams)
-    if (Drafter.hasErrors([sajTarefas])) throw new Exception(sajTarefas.errorMsgs, msgSetter)
-    const sajTarefasMerged = sajTarefas.values
+    const projurisTarefas = await getAdaptedTarefas(tarefasParams)
+    if (Drafter.hasErrors([projurisTarefas])) throw new Exception(projurisTarefas.errorMsgs, msgSetter)
+    const projurisTarefasMerged = projurisTarefas.values
 
-    finalAdaptProcesso(sajProcessoMerged)
-    finalAdaptPartes(sajPartesMerged)
-    finalAdaptAndamentos(sajAndamentosMerged, sajProcessoMerged.responsaveis)
+    finalAdaptProcesso(projurisProcessoMerged)
+    finalAdaptPartes(projurisPartesMerged)
+    finalAdaptAndamentos(projurisAndamentosMerged, projurisProcessoMerged.responsaveis)
     
-    // console.log({ sajProcesso: sajProcessoMerged, sajPartes: sajPartesMerged, sajTarefas: sajTarefasMerged, sajAndamentos: sajAndamentosMerged, sajPedidos: sajPedidosMerged }, msgSetter)
-    createAll({ sajProcesso: sajProcessoMerged, sajPartes: sajPartesMerged, sajTarefas: sajTarefasMerged, sajAndamentos: sajAndamentosMerged, sajPedidos: sajPedidosMerged }, msgSetter)
+    // console.log({ projurisProcesso: projurisProcessoMerged, projurisPartes: projurisPartesMerged, projurisTarefas: projurisTarefasMerged,
+    //     projurisAndamentos: projurisAndamentosMerged, projurisPedidos: projurisPedidosMerged }, msgSetter)
+    createAll({ projurisProcesso: projurisProcessoMerged, projurisPartes: projurisPartesMerged, projurisTarefas: projurisTarefasMerged,
+        projurisAndamentos: projurisAndamentosMerged, projurisPedidos: projurisPedidosMerged }, msgSetter)
 }
 
-function identifyClientsPolo(sajPartes) {
-    const foundClients = sajPartes.filter(parte => parte.flagCliente === true)
+function identifyClientsPolo(projurisPartes) {
+    const foundClients = projurisPartes.filter(parte => parte.flagCliente === true)
     if (foundClients.length === 0) return false
     return foundClients[0].tipoParticipacao.valor
 }
 
-async function mergeConfirmedInfo(sajEverything, confirmedInfo) {
-    const { sajProcesso, sajPartes, sajAndamentos } = sajEverything
-    const sajProcessoMerge = {
+async function mergeConfirmedInfo(projurisEverything, confirmedInfo) {
+    const { projurisProcesso, projurisPartes, projurisAndamentos } = projurisEverything
+    const projurisProcessoMerge = {
         numeroProcesso: [{
             tipoNumeracao: "PADRAO_CNJ",
             numeroDoProcesso: confirmedInfo.numeroProcesso,
@@ -64,56 +66,56 @@ async function mergeConfirmedInfo(sajEverything, confirmedInfo) {
         descricao: confirmedInfo.descricao
     }
 
-    const sajPartesMerge = {
+    const projurisPartesMerge = {
         partesRequerentes: confirmedInfo.partesRequerentes,
         partesRequeridas: confirmedInfo.partesRequeridas
     }
 
-    const sajProcessoMerged = { ...sajProcesso, ...sajProcessoMerge }
-    const sajPartesMerged = { ...sajPartes, ...sajPartesMerge }
-    const sajPedidosMerged = confirmedInfo.pedidos
-    const allSajPartes = [
-        ...sajPartesMerged.partesRequerentes,
-        ...sajPartesMerged.partesRequeridas,
-        ...sajPartesMerged.terceiros,
-        sajPartesMerged.magistrado
+    const projurisProcessoMerged = { ...projurisProcesso, ...projurisProcessoMerge }
+    const projurisPartesMerged = { ...projurisPartes, ...projurisPartesMerge }
+    const projurisPedidosMerged = confirmedInfo.pedidos
+    const allprojurisPartes = [
+        ...projurisPartesMerged.partesRequerentes,
+        ...projurisPartesMerged.partesRequeridas,
+        ...projurisPartesMerged.terceiros,
+        projurisPartesMerged.magistrado
     ]
     return {
-        sajProcessoMerged,
-        sajPartesMerged: allSajPartes,
-        sajAndamentosMerged: sajAndamentos,
-        sajPedidosMerged,
-        tarefasParams: sajEverything.tarefasParams
+        projurisProcessoMerged,
+        projurisPartesMerged: allprojurisPartes,
+        projurisAndamentosMerged: projurisAndamentos,
+        projurisPedidosMerged,
+        tarefasParams: projurisEverything.tarefasParams
     }
 }
 
-function finalAdaptProcesso(sajProcesso) {
-    if (!Array.isArray(sajProcesso.gruposDeTrabalho)) sajProcesso.gruposDeTrabalho = [ sajProcesso.gruposDeTrabalho ]
-    if (!Array.isArray(sajProcesso.assuntoCnj)) sajProcesso.assuntoCnj = [ sajProcesso.assuntoCnj ]
-    if (!Array.isArray(sajProcesso.responsaveis)) sajProcesso.responsaveis = [ sajProcesso.responsaveis ]
-    delete sajProcesso.numeroProcesso
-    delete sajProcesso.gtCrew
-    delete sajProcesso.audienciaFutura
-    sajProcesso.completo = true
-    sajProcesso.assunto = sajProcesso.assunto.nomeAssunto
+function finalAdaptProcesso(projurisProcesso) {
+    if (!Array.isArray(projurisProcesso.gruposDeTrabalho)) projurisProcesso.gruposDeTrabalho = [ projurisProcesso.gruposDeTrabalho ]
+    if (!Array.isArray(projurisProcesso.assuntoCnj)) projurisProcesso.assuntoCnj = [ projurisProcesso.assuntoCnj ]
+    if (!Array.isArray(projurisProcesso.responsaveis)) projurisProcesso.responsaveis = [ projurisProcesso.responsaveis ]
+    delete projurisProcesso.numeroProcesso
+    delete projurisProcesso.gtCrew
+    delete projurisProcesso.audienciaFutura
+    projurisProcesso.completo = true
+    projurisProcesso.assunto = projurisProcesso.assunto.nomeAssunto
 }
 
-function finalAdaptPartes(sajPartes) {
-    sajPartes.forEach( sajParte => delete sajParte.tipoParticipacao.parent)
+function finalAdaptPartes(projurisPartes) {
+    projurisPartes.forEach( projurisParte => delete projurisParte.tipoParticipacao.parent)
 }
 
-function finalAdaptAndamentos(sajAndamentos, responsaveis) {
-    sajAndamentos.forEach(sajAndamento => sajAndamento.responsaveis = responsaveis)
+function finalAdaptAndamentos(projurisAndamentos, responsaveis) {
+    projurisAndamentos.forEach(projurisAndamento => projurisAndamento.responsaveis = responsaveis)
 }
 
 async function getAdaptedTarefas(tarefasParams) {
     const { gtCrew, clientsPoloProcessual } = tarefasParams
     const googleTarefasInfo = await getGoogleTarefasInfo(gtCrew.gt.valor, clientsPoloProcessual)
-    const sajTarefas = { values: [], errorMsgs: [] }
-    sajTarefas.values = googleTarefasInfo
-        .map(tarefaGoogleInfo => adaptGoogleInfoTarefaToProjuris(tarefaGoogleInfo, sajTarefas, tarefasParams))
-        .filter(sajTarefa => sajTarefa != undefined)
-    return sajTarefas
+    const projurisTarefas = { values: [], errorMsgs: [] }
+    projurisTarefas.values = googleTarefasInfo
+        .map(tarefaGoogleInfo => adaptGoogleInfoTarefaToProjuris(tarefaGoogleInfo, projurisTarefas, tarefasParams))
+        .filter(projurisTarefa => projurisTarefa != undefined)
+    return projurisTarefas
 }
 
 async function getGoogleTarefasInfo(gtName, clientsPoloProcessual) {
@@ -131,29 +133,29 @@ function filterGoogleTarefasByProcessoSide(googleTarefas, clientSide) {
     })
 }
 
-function adaptGoogleInfoTarefaToProjuris (tarefaGoogleInfo, sajTarefas, tarefasParams) {
+function adaptGoogleInfoTarefaToProjuris (tarefaGoogleInfo, projurisTarefas, tarefasParams) {
     const { tiposTarefa, gtCrew, audienciaFutura } = tarefasParams
     const dataAudiencia = audienciaFutura?.data
     const [ , , nomeTarefa, detalhe, observacao,
         teamsResponsible, prazoPrevistoString, prazoFatalString ] = tarefaGoogleInfo
     if (!dataAudiencia &&
         (prazoPrevistoString.toLowerCase().includes("aud") || prazoFatalString.toLowerCase().includes("aud"))) return
-    const sajTarefa = new SajTarefaDataStructure()
+    const projurisTarefa = new ProjurisTarefaDataStructure()
     const tipoTarefa = tiposTarefa
         .filter(tipoTarefa => tipoTarefa.nomeTipoTarefa.toLowerCase() === nomeTarefa.toLowerCase())
     if (Array.isArray(tipoTarefa) && tipoTarefa.length === 0) {
         const errorMsg = generateErrMsg.noMatchInGoogle(nomeTarefa, "tarefa")
-        sajTarefas.errorMsgs.push(errorMsg)
+        projurisTarefas.errorMsgs.push(errorMsg)
         return errorMsgFallback
     }
-    sajTarefa.compromisso = false
-    sajTarefa.possuiRecorrencia = false
-    sajTarefa.modulos = [{
+    projurisTarefa.compromisso = false
+    projurisTarefa.possuiRecorrencia = false
+    projurisTarefa.modulos = [{
         modulo: "PROCESSO",
         codigoRegistroVinculo: undefined,
         vinculoPrincipal: true
     }]
-    sajTarefa.tarefaEventoWs =  {
+    projurisTarefa.tarefaEventoWs =  {
         descricaoTarefa: detalhe + " - " + observacao,
         dataConclusaoPrevista: getDateFromGoogleString(prazoPrevistoString, dataAudiencia).getTime(),
         horaConclusao: getDateFromGoogleString(prazoPrevistoString, dataAudiencia).toISOString(),
@@ -174,7 +176,7 @@ function adaptGoogleInfoTarefaToProjuris (tarefaGoogleInfo, sajTarefas, tarefasP
             situacao: "Pendente"
         }
     }
-    return sajTarefa
+    return projurisTarefa
 }
 
 function getTeamResponsaveis(teamsResponsible, gtCrew) {

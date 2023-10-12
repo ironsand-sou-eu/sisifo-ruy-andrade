@@ -3,12 +3,12 @@ import AsyncSelect from "react-select/async"
 import Drafter from "../../adapters/drafter"
 import { loadSimpleOptions } from "../../connectors/projuris"
 import { LoadingContext, MsgSetterContext } from "../App.jsx"
-import useSajTranslator from "../hooks/useSajTranslator.jsx"
+import useProjurisTranslator from "../hooks/useProjurisTranslator.jsx"
 
 function Select(props) {
     const isLoading = useContext(LoadingContext)
     const msgSetter = useContext(MsgSetterContext)
-    const { insertValueLabel, removeValueLabel } = useSajTranslator()
+    const { insertValueLabel, removeValueLabel } = useProjurisTranslator()
     const filterFunction = input => loadSimpleOptions(props.optionsEndpoint, { ...props.filter, val: input, flattenOptions: props.hasMultiLevelSource })
     async function changed(newData) {
         if (props.name !== "gruposDeTrabalho" || newData === null)
