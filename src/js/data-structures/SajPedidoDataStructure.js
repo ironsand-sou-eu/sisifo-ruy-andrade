@@ -1,4 +1,4 @@
-class SajPedidoDataStructure
+export default class SajPedidoDataStructure
 {
     constructor(nomePedido, codigoPedido, dataPedido = new Date(), valorPedido,
         valorProvisionado, tipoCorrecaoMonetaria, situacaoPedido, observacao,
@@ -6,10 +6,8 @@ class SajPedidoDataStructure
         Object.assign(this, {
             nomePedido, codigoPedido, valorPedido, valorProvisionado,
             tipoCorrecaoMonetaria, situacaoPedido, observacao, riscoPorcentagem,
-            estimativaTipo, flagValorProvisionado
+            estimativaTipo, flagValorProvisionado,
+            dataPedido: dataPedido ? new Date(dataPedido.getTime()) : undefined
         })
-        this.dataPedido = dataPedido ? new Date(dataPedido.getTime()) : undefined
     }
 }
-
-export default SajPedidoDataStructure

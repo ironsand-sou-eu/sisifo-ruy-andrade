@@ -1,6 +1,6 @@
 import hardcoded from "../hardcodedValues"
 
-class SajProcessoDataStructure
+export default class SajProcessoDataStructure
 {
     constructor(situacaoProcesso = { chave: 1, valor: "Ativo" },
         unidadeOrganizacionalOrigem = hardcoded.unidadeOrganizacional.RuyAndrade,
@@ -19,12 +19,10 @@ class SajProcessoDataStructure
             vara, tipoVara, complementoVara, area, fase, tipoInstancia, valorAcao,
             processoNumeroWs, capturaHabilitada, mergeCaptura, instanciaCnj, orgaoJudicial,
             classeCnj, assuntoCnj, segredoJustica, senhaProcesso, pastaCliente,
-            tipoProcessoRelacionadoWs, codigoProcessoPai, errorMsgs
+            tipoProcessoRelacionadoWs, codigoProcessoPai, errorMsgs,
+            dataDistribuicao: dataDistribuicao ? new Date(dataDistribuicao.getTime()) : undefined,
+            dataRecebimento: dataRecebimento ? new Date(dataRecebimento.getTime()) : undefined,
+            dataCitacao: dataCitacao ? new Date(dataCitacao.getTime()) : undefined
         })
-        this.dataDistribuicao = dataDistribuicao ? new Date(dataDistribuicao.getTime()) : undefined
-        this.dataRecebimento = dataRecebimento ? new Date(dataRecebimento.getTime()) : undefined
-        this.dataCitacao = dataCitacao ? new Date(dataCitacao.getTime()) : undefined
     }
 }
-
-export default SajProcessoDataStructure

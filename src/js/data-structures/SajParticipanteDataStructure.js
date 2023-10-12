@@ -1,4 +1,4 @@
-class SajParticipanteDataStructure
+export default class SajParticipanteDataStructure
 {
     constructor(nomePessoa, codigoPessoa, cpfCnpj, flagSemCpfCnpj = false,
         justificativaSemCpfCnpj, tipoPessoa, observacaoGeral, telefone, email,
@@ -13,5 +13,3 @@ class SajParticipanteDataStructure
         })
     }
 }
-
-export default SajParticipanteDataStructure

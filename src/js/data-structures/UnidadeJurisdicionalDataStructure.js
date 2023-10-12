@@ -1,4 +1,4 @@
-class UnidadeJurisdicionalDataStructure
+export default class UnidadeJurisdicionalDataStructure
 {
     constructor(nomeOriginalSistemaJustica = '', nomeAdaptadoAoCliente = '',
         orgaoSuperior = undefined) {
@@ -7,5 +7,3 @@ class UnidadeJurisdicionalDataStructure
         })
     }
 }
-
-export default UnidadeJurisdicionalDataStructure
