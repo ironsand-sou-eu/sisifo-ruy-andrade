@@ -4,10 +4,11 @@ import AsyncSelect from "react-select/async"
 import Trash from "./Trash.jsx"
 import { endPoints, loadSimpleOptions } from "../../connectors/projuris"
 import useSajTranslator from "../hooks/useSajTranslator.jsx"
+import { operators } from "../../utils/utils.js"
 
 function Pedido(props) {
     const { removeValueLabel } = useSajTranslator()
-    const filterFunction = input => loadSimpleOptions(endPoints.pedidos + input, { key: "valor", operator: "insentiviveIncludes", val: input })
+    const filterFunction = input => loadSimpleOptions(endPoints.pedidos + input, { key: "valor", operator: operators.insentiviveIncludes, val: input })
 
     const prognosticoOptions = [
         { value: "PROVAVEL", label: "Provável" },

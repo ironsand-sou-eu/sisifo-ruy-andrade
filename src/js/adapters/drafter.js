@@ -1,5 +1,5 @@
 import insertAdaptedAndamentoNames from "./andamentos"
-import compareWithOperator, { REGEX_CNJ_NUMBER } from "../utils/utils"
+import compareWithOperator, { REGEX_CNJ_NUMBER, operators } from "../utils/utils"
 import { fetchGoogleSheetData, extractValuesFromSheetsPromise, fetchGoogleSheetRowsMatchingExpression } from "../connectors/google-sheets"
 import fetchSajInfo, { extractOptionsArray, endPoints, flattenObjectsArray } from "../connectors/projuris"
 import { tiposParte, sajTipoEnvolvidoType } from "../enums"
@@ -13,7 +13,7 @@ import generateErrMsg from "../exceptions/error-message-generator"
 
 class Drafter {
     static #errorMsgFallback = "Ocorreu uma falha, vide mensagens de erro"
-    static #filterTemplate = { key: "valor", operator: "insensitiveStrictEquality" }
+    static #filterTemplate = { key: "valor", operator: operators.insensitiveStrictEquality }
     static #nomeSistemaProjuris = {
         projuditjba: "PROJUDI",
         pje1gtjba: "PJE"
@@ -134,7 +134,7 @@ class Drafter {
         sajParte.habilitado = true
         if (parte.tipoDeParte === tiposParte.advogado) sajParte.profissao = { chave: 616, valor: "Advogado" }
         sajParte.tipoEnvolvido = sajTipoEnvolvidoType[parte.tipoDeParte]
-        sajParte.tipoParticipacao = Drafter.#filterSajOptions(this.#tiposParticipacao, { key: "valor", operator: "insensitiveStrictEquality", val: parte.tipoDeParte, flattenOptions: true })[0]
+        sajParte.tipoParticipacao = Drafter.#filterSajOptions(this.#tiposParticipacao, { key: "valor", operator: operators.insensitiveStrictEquality, val: parte.tipoDeParte, flattenOptions: true })[0]
         sajParte.flagPrincipal = (index === 0)
         sajParte.flagCompleto = true
         return sajParte
@@ -154,7 +154,7 @@ class Drafter {
         sajParte.observacaoGeral = ""
         sajParte.habilitado = true
         sajParte.tipoEnvolvido = sajTipoEnvolvidoType.juiz
-        const filter = { key: "valor", operator: "insensitiveStrictEquality", val: "magistrado", flattenOptions: true }
+        const filter = { key: "valor", operator: operators.insensitiveStrictEquality, val: "magistrado", flattenOptions: true }
         sajParte.tipoParticipacao = Drafter.#filterSajOptions(this.#tiposParticipacao, filter)[0]
         sajParte.flagPrincipal = false
         sajParte.flagCompleto = true
@@ -261,7 +261,7 @@ class Drafter {
         sajProcesso.complementoVara = juizoInfo.comarca
         sajProcesso.instanciaCnj = getProjurisItem("instanciaCnj", isntanciasCnjList)
         sajProcesso.orgaoJudicial = getProjurisItem("orgaoJudicial", orgaosJudiciaisList)
-        sajProcesso.tipoJustica = getProjurisItem("tipoJustica", tiposJusticaList, { key: "chave", operator: "insensitiveStrictEquality", val: codTipoJustica }, codTipoJustica)
+        sajProcesso.tipoJustica = getProjurisItem("tipoJustica", tiposJusticaList, { key: "chave", operator: operators.insensitiveStrictEquality, val: codTipoJustica }, codTipoJustica)
         sajProcesso.area = getProjurisItem("area", areasList, { ...Drafter.#filterTemplate, val: "CONSUMIDOR" }, "CONSUMIDOR")
         sajProcesso.fase = getProjurisItem("fase", fasesList, { ...Drafter.#filterTemplate, val: "Inicial" }, "Inicial")
         const gts = Drafter.#filterSajOptions(gtsList, { ...Drafter.#filterTemplate, val: clientRole?.gt })
@@ -530,7 +530,7 @@ class Drafter {
         const allClientsProvisionsList = await extractValuesFromSheetsPromise(responses[0])
         const filter = {
             key: 0,
-            operator: "insensitiveStrictEquality",
+            operator: operators.insensitiveStrictEquality,
             val: clientName
         }
         return Drafter.#filterSajOptions(allClientsProvisionsList, filter)

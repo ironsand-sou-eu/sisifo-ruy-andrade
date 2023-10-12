@@ -13,7 +13,7 @@ function PopupForm({ onSubmit, data, updateData }) {
     const [ warningMessages ] = useValidator(data);
     const filter = {
         key: "valor",
-        operator: "insentiviveIncludes"
+        operator: operators.insentiviveIncludes
     };
 
 
