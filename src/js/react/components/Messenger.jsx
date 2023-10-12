@@ -2,7 +2,7 @@ import React from "react"
 import { useEffect } from "react"
 import { useRef } from "react"
 
-function Messenger({ successMsgs, processingMsgs, failureMsgs }) {
+function Messenger({ successMsgs, processingMsgs, failureMsgs, scrollable = true }) {
     const aside = useRef(null)
     const successUl = useRef(null)
     const processingUl = useRef(null)
@@ -10,6 +10,7 @@ function Messenger({ successMsgs, processingMsgs, failureMsgs }) {
 
     useEffect(() => {
         if (!successMsgs?.length && !processingMsgs?.length && !failureMsgs?.length) return
+        if (!scrollable) return
         aside.current.scrollIntoView({ block: "center", behavior: "smooth" })
     },
     [successMsgs?.length, processingMsgs?.length, failureMsgs?.length]

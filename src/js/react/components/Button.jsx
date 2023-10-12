@@ -39,6 +39,7 @@ function Button({ label, warningMessages }) {
             <div className="form-group">
                 <Messenger
                     processingMsgs={warningMessages}
+                    scrollable={false}
                 />
             </div>
 
