@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
-import PartesColumn from "./PartesColumn.jsx";
-import Text from "./Text.jsx";
-import Select from "./Select.jsx";
-import Checkbox from "./Checkbox.jsx";
-import Textarea from "./Textarea.jsx";
-import PedidosBox from "./PedidosBox.jsx";
-import Button from "./Button.jsx";
+import PartesColumn from "./PartesColumn";
+import Text from "./Text";
+import Select from "./Select";
+import Checkbox from "./Checkbox";
+import Textarea from "./Textarea";
+import PedidosBox from "./PedidosBox";
+import Button from "./Button";
 import { endPoints } from "../../connectors/projuris";
-import useValidator from "../hooks/useValidator.jsx";
+import useValidator from "../hooks/useValidator";
 
 function PopupForm({ onSubmit, data, updateData }) {
     const [ warningMessages ] = useValidator(data);

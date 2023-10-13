@@ -1,6 +1,6 @@
 import React from "react"
-import Pedido from "./Pedido.jsx"
-import Add from "./Add.jsx"
+import Pedido from "./Pedido"
+import Add from "./Add"
 
 function PedidosBox(props) {
     const changingFunctions = {

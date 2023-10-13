@@ -11,6 +11,10 @@ export const entry = {
 export const output = {
     filename: "[name].js"
 }
+export const resolve = {
+    extensions: ['.js', '.jsx']
+}
+
 export const module = {
     rules: [{
         test: /\.js(x)?$/,

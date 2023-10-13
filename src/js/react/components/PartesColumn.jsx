@@ -1,5 +1,5 @@
 import React from "react"
-import Parte from "./Parte.jsx"
+import Parte from "./Parte"
 
 function PartesColumn(props) {
     if (!props.partes) return

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
-import { LoadingContext } from "../App.jsx";
-import Messenger from "./Messenger.jsx";
+import { LoadingContext } from "../App";
+import Messenger from "./Messenger";
 
 function Button({ label, warningMessages }) {
     const loading = useContext(LoadingContext);

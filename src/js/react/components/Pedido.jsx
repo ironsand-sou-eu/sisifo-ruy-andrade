@@ -1,9 +1,9 @@
 import React from "react"
 import Select from "react-select"
 import AsyncSelect from "react-select/async"
-import Trash from "./Trash.jsx"
+import Trash from "./Trash"
 import { endPoints, loadSimpleOptions } from "../../connectors/projuris"
-import useProjurisTranslator from "../hooks/useProjurisTranslator.jsx"
+import useProjurisTranslator from "../hooks/useProjurisTranslator"
 import { operators } from "../../utils/utils.js"
 
 function Pedido(props) {

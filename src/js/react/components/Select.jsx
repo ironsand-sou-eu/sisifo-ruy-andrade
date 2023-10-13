@@ -2,8 +2,8 @@ import React, { useContext } from "react"
 import AsyncSelect from "react-select/async"
 import Drafter from "../../adapters/drafter"
 import { loadSimpleOptions } from "../../connectors/projuris"
-import { LoadingContext, MsgSetterContext } from "../App.jsx"
-import useProjurisTranslator from "../hooks/useProjurisTranslator.jsx"
+import { LoadingContext, MsgSetterContext } from "../App"
+import useProjurisTranslator from "../hooks/useProjurisTranslator"
 
 function Select(props) {
     const isLoading = useContext(LoadingContext)

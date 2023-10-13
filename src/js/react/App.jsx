@@ -1,9 +1,9 @@
 import React, { useEffect, useState, createContext } from "react"
-import Header from "./components/Header.jsx"
-import Messenger from "./components/Messenger.jsx"
-import PopupForm from "./components/PopupForm.jsx"
+import Header from "./components/Header"
+import Messenger from "./components/Messenger"
+import PopupForm from "./components/PopupForm"
 import finalizeProcessoInfo from "../adapters/confirmation-projuris.js"
-import useMsgSetter from "./hooks/useMsgSetter.jsx"
+import useMsgSetter from "./hooks/useMsgSetter"
 import { debounce } from "../utils/utils"
 
 const LoadingContext = createContext();
