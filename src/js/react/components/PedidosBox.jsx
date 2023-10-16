@@ -2,19 +2,19 @@ import React from "react"
 import Pedido from "./Pedido"
 import Add from "./Add"
 
-function PedidosBox(props) {
+export default function PedidosBox({ pedidos, onChange }) {
     const changingFunctions = {
         update: ({targetIndex, newPedido}) => {
-            props.pedidos[targetIndex] = newPedido
-            return props.pedidos
+            pedidos[targetIndex] = newPedido
+            return pedidos
         },
         delete: (targetIndex) => {
-            props.pedidos.splice(targetIndex, 1)
-            return props.pedidos
+            pedidos.splice(targetIndex, 1)
+            return pedidos
         },
         add: () => {
-            props.pedidos.push({dataPedido: Date.now(), flagValorProvisionado: true})
-            return props.pedidos
+            pedidos.push({dataPedido: Date.now(), flagValorProvisionado: true})
+            return pedidos
         }
     }
 
@@ -24,7 +24,7 @@ function PedidosBox(props) {
             <Add
                 onClick={() => {
                     const pedidos = changingFunctions.add()
-                    props.onChange(pedidos, {name: "pedidos"})
+                    onChange(pedidos, {name: "pedidos"})
                 }}
             />
             <div className="col-sm-12 inputGroupContainer d-flex no-padding">
@@ -36,14 +36,14 @@ function PedidosBox(props) {
                 <label className="sisifo-label centered f-size"></label>
             </div>
             <div className="col-sm-12 inputGroupContainer">
-                {props.pedidos?.map((pedido, index) => (
+                {pedidos?.map((pedido, index) => (
                     <Pedido
                         key={i++}
                         index={index}
                         pedido={pedido}
                         onChange={changeParams => {
                             const pedidos = changingFunctions[changeParams.type](changeParams)
-                            props.onChange(pedidos, "pedidos")
+                            onChange(pedidos, "pedidos")
                         }}
                     />
                 ))}
@@ -51,5 +51,3 @@ function PedidosBox(props) {
         </div>
     )
 }
-
-export default PedidosBox
