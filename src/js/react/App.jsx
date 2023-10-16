@@ -1,20 +1,23 @@
 import React, { useEffect, useState, createContext } from "react"
+import useLoader from "./hooks/useLoader"
 import Header from "./components/Header"
 import Messenger from "./components/Messenger"
 import PopupForm from "./components/PopupForm"
 import finalizeProcessoInfo from "../adapters/confirmation-projuris.js"
 import useMsgSetter from "./hooks/useMsgSetter"
-import { debounce } from "../utils/utils"
+import useErrorHandler from "./hooks/useErrorHandler"
 
-const LoadingContext = createContext();
-const MsgSetterContext = createContext();    
+export const LoadingContext = createContext();
+export const MsgSetterContext = createContext();    
 
-function App() {
-    const [result, setResult] = useState({ success: [], processing: [], fail: [] });
+export default function App() {
+    const [ processoDraftedData, setProcessoDraftedData ] = useState(null)
+    const [ formData, setFormData ] = useState()
+    const [ result, setResult ] = useState({ success: [], processing: [], fail: [] });
+    const [ loading, setLoading ] = useState({ scrapping: true, creating: false })
     const { msgSetter } = useMsgSetter(result, setResult);
-    const [formData, setFormData] = useState()
-    const [processoProjurisData, setProcessoProjurisData] = useState(null)
-    const [loading, setLoading] = useState({ scrapping: true, creating: false })
+    const { adaptedInfoHasErrors } = useErrorHandler(processoDraftedData, msgSetter)
+    useLoader(processoDraftedData, setProcessoDraftedData)
 
     function updateFormData(newData, changedInput) {
         setFormData(prevData => {
@@ -25,44 +28,11 @@ function App() {
     function onSubmit(e) {
         e.preventDefault()
         setLoading({ scrapping: false, creating: true })
-        finalizeProcessoInfo(processoProjurisData, formData, msgSetter)
+        // finalizeProcessoInfo(processoDraftedData, formData, msgSetter)
     }
-
-    function handleAdaptedInfoErrors() {
-        if (!adaptedInfoHasErrors()) return
-        processoProjurisData.errorMsgs.forEach(errorMsg => {msgSetter.addMsg({
-            type: "fail",
-            msg: errorMsg
-        })})
-        return true
-    }
-
-    function adaptedInfoHasErrors() {
-        if (processoProjurisData?.hasErrors) return true
-        else return false
-    }
-
-    useEffect(
-        () => {
-            if (adaptedInfoHasErrors()) handleAdaptedInfoErrors()
-        },
-        [processoProjurisData]
-    )
-
-    useEffect(debounce(() => {
-        if (processoProjurisData !== null) return
-        chrome.runtime.sendMessage({
-                from: "sisifoPopup",
-                subject: "query-processo-info-to-show"
-            },
-            response => {
-                setProcessoProjurisData(response)
-            }
-        )
-    }, [processoProjurisData]))
 
     useEffect(() => {
-        if (processoProjurisData === null) return
+        if (processoDraftedData === null) return
         setLoading({ scrapping: false, creating: false })
         if (adaptedInfoHasErrors()) return
         const {
@@ -73,7 +43,7 @@ function App() {
             projurisPartes: { partesRequerentes, partesRequeridas },
             responsaveisList,
             projurisPedidos
-        } = processoProjurisData
+        } = processoDraftedData
         const data = {
             numeroDoProcesso, area, tipoJustica, vara, tipoVara, assuntoCnj, fase, responsaveisList, gruposDeTrabalho,
             responsaveis, segredoJustica, partesRequerentes, partesRequeridas, projurisPedidos,
@@ -82,7 +52,7 @@ function App() {
             dataRecebimento: new Date().toISOString().substring(0, 10),
         }
         setFormData(data)
-    }, [processoProjurisData])
+    }, [processoDraftedData])
 
     return (
         <LoadingContext.Provider value={loading}>
@@ -102,6 +72,3 @@ function App() {
         </LoadingContext.Provider>
     )
 }
-
-export default App
-export { LoadingContext, MsgSetterContext }
