@@ -1,7 +1,6 @@
 import React, { useContext } from "react"
 import AsyncSelect from "react-select/async"
-import Drafter from "../../adapters/drafter"
-import { loadSimpleOptions } from "../../connectors/projuris"
+import { getGtCrew, loadSimpleOptions } from "../../connectors/projuris"
 import { LoadingContext, MsgSetterContext } from "../App"
 import useProjurisTranslator from "../hooks/useProjurisTranslator"
 
@@ -14,7 +13,7 @@ function Select(props) {
         if (props.name !== "gruposDeTrabalho" || newData === null)
             return props.onChange(removeValueLabel(newData), props.name)
         try {
-            const gtCrew = await Drafter.getGtCrew(newData.label, props?.allResponsaveis)
+            const gtCrew = await getGtCrew(newData.label, props?.allResponsaveis)
             const responsaveis = gtCrew?.advs
             props.onChange(removeValueLabel(responsaveis), "responsaveis")
             props.onChange(removeValueLabel(newData), props.name)

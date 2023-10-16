@@ -33,3 +33,16 @@ export function debounce(cb, delay = 250) {
         }, delay)
     }
 }
+
+export function hasErrors(projurisEntitiesArray) {
+    const allErrors = []
+    projurisEntitiesArray.forEach(projurisEntity => {
+        const errorMsgs = projurisEntity.errorMsgs
+        if (errorMsgs && Array.isArray(errorMsgs) && errorMsgs.length > 0) {
+            allErrors.push(...errorMsgs)
+        }
+    })
+    if (allErrors.length === 0) return false
+    return allErrors
+}
+

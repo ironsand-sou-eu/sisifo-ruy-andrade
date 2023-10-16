@@ -1,8 +1,10 @@
 import { fetchGoogleSheetRowsMatchingExpression } from "../connectors/google-sheets"
+import { getGtCrew } from "../connectors/projuris"
 import createAll from "../creators/projuris"
 import ProjurisTarefaDataStructure from "../data-structures/ProjurisTarefaDataStructure"
 import Exception from "../exceptions/Exception"
 import generateErrMsg from "../exceptions/error-message-generator"
+import { hasErrors } from "../utils/utils"
 import Drafter from "./drafter"
 
 let msgSetter
@@ -13,7 +15,7 @@ async function finalizeProcessoInfo(projurisEverything, confirmedInfo, resultSet
         tarefasParams } = await mergeConfirmedInfo(projurisEverything, confirmedInfo)
     const polo = identifyClientsPolo(projurisPartesMerged)
     try {
-        const gtCrew = await Drafter.getGtCrew(projurisProcessoMerged.gruposDeTrabalho.valor, tarefasParams.allResponsaveisList)
+        const gtCrew = await getGtCrew(projurisProcessoMerged.gruposDeTrabalho.valor, tarefasParams.allResponsaveisList)
         gtCrew.gt = projurisProcessoMerged.gruposDeTrabalho
         gtCrew.advs = projurisProcessoMerged.responsaveis
         tarefasParams.gtCrew = gtCrew
@@ -22,7 +24,7 @@ async function finalizeProcessoInfo(projurisEverything, confirmedInfo, resultSet
     }
     tarefasParams.clientsPoloProcessual = polo
     const projurisTarefas = await getAdaptedTarefas(tarefasParams)
-    if (Drafter.hasErrors([projurisTarefas])) throw new Exception(projurisTarefas.errorMsgs, msgSetter)
+    if (hasErrors([projurisTarefas])) throw new Exception(projurisTarefas.errorMsgs, msgSetter)
     const projurisTarefasMerged = projurisTarefas.values
 
     finalAdaptProcesso(projurisProcessoMerged)

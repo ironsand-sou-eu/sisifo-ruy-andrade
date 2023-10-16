@@ -1,5 +1,8 @@
+import Drafter from "../adapters/drafter"
 import envVars from "../envVars"
+import generateErrMsg from "../exceptions/error-message-generator"
 import compareWithOperator from "../utils/utils"
+import { fetchGoogleSheetRowsMatchingExpression } from "./google-sheets"
 
 export const endPoints = {
     assuntosProjuris: "/assunto/consulta/",
@@ -18,6 +21,7 @@ export const endPoints = {
     tiposTarefa: "/tarefa-tipo/consulta",
     tiposAndamento: "/andamento-tipo/consulta?",
     pedidos: "/processo/pedido/consultar-por-nome?nome-pedido=",
+    contasBancarias: "/financeiro/conta/consulta",
     buscarPessoa: "/pessoa/consulta",
     criarPessoa: "/pessoa",
     vincularPessoaProcesso: "/processo/envolvido/",
@@ -93,6 +97,7 @@ export async function extractOptionsArray(projurisFetchResponse) {
     if (jsonResp.pessoaConsulta) return jsonResp.pessoaConsulta
     if (jsonResp.pessoaConsultaSimples) return jsonResp.pessoaConsultaSimples
     if (jsonResp.campoDinamicoWs) return jsonResp.campoDinamicoWs
+    if (jsonResp.contaConsultaResultadoWs) return jsonResp.contaConsultaResultadoWs
     return
 }
 
@@ -154,4 +159,46 @@ export function flattenObjectsArray(objsArray, parent, res = []){
         }
     })
     return res;
+}
+
+export async function getGtCrew(grupoDeTrabalhoName, allResponsaveisList, token = undefined) {
+    if (grupoDeTrabalhoName === undefined) return undefined
+    if (!allResponsaveisList) {
+        const response = await fetchProjurisInfo(endPoints.responsaveis)
+        allResponsaveisList = await extractOptionsArray(response)
+    }
+    const fetchedValues = await fetchGoogleSheetRowsMatchingExpression("gts", grupoDeTrabalhoName, token)
+    const [ , , coordenadoresNames, advsNames, estagiariosNames, controladoriaNames ] = fetchedValues.value
+    if (!fetchedValues.found) throw fetchedValues.value
+    const namesArrays = [ coordenadoresNames, advsNames, estagiariosNames, controladoriaNames ]
+        .map(commaSeparatedNames => commaSeparatedNames.split(",")
+        .map(name => name.trim()))
+        console.log({ namesArrays })
+    const [ coordenadores, advs, estagiarios, controladoria ] = namesArrays
+        .map(nameArray => getGtEntities(nameArray, allResponsaveisList))
+    return { coordenadores, advs, estagiarios, controladoria }
+}
+
+function getGtEntities(names, allResponsaveisList, filterTemplate = Drafter.filterTemplate) {
+    if (!Array.isArray(names)) names = [ names ]
+    const onlyOneEmptyString = names.length === 1 && (names[0] == "" || names[0] == undefined)
+    if (names.length === 0 || onlyOneEmptyString) return undefined
+    return names.map(name => {
+        const filteredOptions = filterProjurisOptions(allResponsaveisList, {...filterTemplate, val: name})
+        if (filteredOptions !== undefined) return filteredOptions[0]
+        else throw generateErrMsg.noMatchInProjuris(name, "usuario")
+    })
+}
+
+export function filterProjurisOptions(rawOptions, filterObject) {
+    let flattenedOptions
+    if (filterObject.flattenOptions) flattenedOptions = flattenObjectsArray(rawOptions)
+    const options = flattenedOptions ?? rawOptions
+    const filtered = options
+        .filter(option => compareWithOperator(
+            option[filterObject.key],
+            filterObject.operator,
+            filterObject.val)
+        )
+    return (filtered.length !== 0) ? filtered : undefined
 }
