@@ -8,6 +8,7 @@ import PedidosBox from "./PedidosBox";
 import Button from "./Button";
 import { endPoints } from "../../connectors/projuris";
 import useValidator from "../hooks/useValidator";
+import { operators } from "../../utils/utils";
 
 function PopupForm({ onSubmit, data, updateData }) {
     const [ warningMessages ] = useValidator(data);
