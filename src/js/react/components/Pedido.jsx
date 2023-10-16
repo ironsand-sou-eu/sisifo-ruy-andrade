@@ -5,16 +5,11 @@ import Trash from "./Trash"
 import { endPoints, loadSimpleOptions } from "../../connectors/projuris"
 import useProjurisTranslator from "../hooks/useProjurisTranslator"
 import { operators } from "../../utils/utils.js"
+import { prognosticoOptions } from "../../utils/enumsAndHardcoded"
 
 function Pedido(props) {
     const { removeValueLabel } = useProjurisTranslator()
     const filterFunction = input => loadSimpleOptions(endPoints.pedidos + input, { key: "valor", operator: operators.insentiviveIncludes, val: input })
-
-    const prognosticoOptions = [
-        { value: "PROVAVEL", label: "Provável" },
-        { value: "POSSIVEL", label: "Possível" },
-        { value: "REMOTO", label: "Remoto" }
-    ]
 
     function getPrognosticoOption(prognosticoValue) {
         return prognosticoOptions.find(prognosticoOption => prognosticoOption.value === prognosticoValue)

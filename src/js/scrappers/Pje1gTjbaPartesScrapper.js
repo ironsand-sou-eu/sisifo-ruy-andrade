@@ -1,6 +1,6 @@
 import ParteDataStructure from "../data-structures/ParteDataStructure"
 import NotProcessoHomepageException from "../exceptions/NotProcessoHomepageException"
-import { tiposParte } from "../enums"
+import { tiposParte } from "../utils/enumsAndHardcoded"
 
 class Pje1gTjbaParteScrapper
 {

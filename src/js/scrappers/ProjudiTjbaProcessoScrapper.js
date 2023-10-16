@@ -1,7 +1,7 @@
 import ProcessoDataStructure from "../data-structures/ProcessoDataStructure"
 import UnidadeJurisdicionalDataStructure from "../data-structures/UnidadeJurisdicionalDataStructure"
 import NotProcessoHomepageException from "../exceptions/NotProcessoHomepageException"
-import { sistemas, tiposParte } from "../enums"
+import { sistemas, tiposParte } from "../utils/enumsAndHardcoded"
 import ProjudiTjbaAndamentosScrapper from "./ProjudiTjbaAndamentosScrapper"
 import ProjudiTjbaPartesScrapper from "./ProjudiTjbaPartesScrapper"
 

@@ -1,7 +1,7 @@
 import ProcessoDataStructure from "../data-structures/ProcessoDataStructure"
 import UnidadeJurisdicionalDataStructure from "../data-structures/UnidadeJurisdicionalDataStructure"
 import NotProcessoHomepageException from "../exceptions/NotProcessoHomepageException"
-import { tiposParte } from "../enums"
+import { tiposParte } from "../utils/enumsAndHardcoded"
 import Pje1gTjbaAndamentosScrapper from "./Pje1gTjbaAndamentosScrapper"
 import Pje1gTjbaParteScrapper from "./Pje1gTjbaPartesScrapper"
 import { REGEX_CNJ_NUMBER } from "../utils/utils"

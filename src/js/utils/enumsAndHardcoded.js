@@ -1,3 +1,38 @@
+export const hardcoded = Object.freeze({
+    tipoResponsavelPagamento : "CLIENTE",
+    tipoLancamentoFinanceiro : "RECEITA",
+    pagamentoTipo: "TRANSFERENCIA",
+    numeroParcelas: 1,
+    pessoa: {
+        RuyAndrade: {
+            chave: 37221,
+            valor: "Ruy Andrade Advocacia Empresarial"
+        }
+    },
+    planoConta: {
+        chave: 357418,
+        valor: "Receita de Prestação de Serviços"
+    },
+    tiposDocumento: {
+        notaFiscal: {
+            chave: 2,
+            valor: "Nota Fiscal"
+        }
+    },
+    condicoesPagamento: {
+        aVista: {
+            chave: 1,
+            valor: "À vista"
+        }
+    },
+    contas: {
+        inter: {
+            chave: 4362,
+            valor: "INTER"
+        }
+    }
+})
+
 export const tiposParte = Object.freeze({
     requerente: 'autor',
     requerido: 'réu',
@@ -48,3 +83,10 @@ export const sistemas = Object.freeze({
     tjbaProjudi: 'projudiTjba',
     tjba: 'Possível'
 })
+
+export const prognosticoOptions = [
+    { value: "PROVAVEL", label: "Provável" },
+    { value: "POSSIVEL", label: "Possível" },
+    { value: "REMOTO", label: "Remoto" }
+]
+
