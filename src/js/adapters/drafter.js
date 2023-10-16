@@ -1,27 +1,29 @@
 import insertAdaptedAndamentoNames from "./andamentos"
-import compareWithOperator, { REGEX_CNJ_NUMBER, operators } from "../utils/utils"
+import { REGEX_CNJ_NUMBER, hasErrors, operators } from "../utils/utils"
 import { fetchGoogleSheetData, extractValuesFromSheetsPromise, fetchGoogleSheetRowsMatchingExpression } from "../connectors/google-sheets"
-import fetchProjurisInfo, { extractOptionsArray, endPoints, flattenObjectsArray } from "../connectors/projuris"
+import fetchProjurisInfo, { extractOptionsArray, endPoints, getGtCrew, filterProjurisOptions } from "../connectors/projuris"
 import { tiposParte, projurisTipoEnvolvidoType } from "../utils/enumsAndHardcoded"
 import ProjurisProcessoDataStructure from "../data-structures/ProjurisProcessoDataStructure"
 import ProjurisParticipanteDataStructure from "../data-structures/ProjurisParticipanteDataStructure"
 import ProjurisAndamentoDataStructure from "../data-structures/ProjurisAndamentoDataStructure"
 import ProjurisPedidoDataStructure from "../data-structures/ProjurisPedidoDataStructure"
+import ProjurisFaturamentoDataStructure from "../data-structures/ProjurisFaturamentoDataStructure"
 import cnjClasses from "./cnj-classes"
 import cnjAssuntos from "./cnj-assuntos"
 import generateErrMsg from "../exceptions/error-message-generator"
 
 export default class Drafter {
-    static #errorMsgFallback = "Ocorreu uma falha, vide mensagens de erro"
-    static #filterTemplate = { key: "valor", operator: operators.insensitiveStrictEquality }
+    #errorMsgFallback = "Ocorreu uma falha, vide mensagens de erro"
+    static filterTemplate = { key: "valor", operator: operators.insensitiveStrictEquality }
     static #nomeSistemaProjuris = {
         projuditjba: "PROJUDI",
         pje1gtjba: "PJE"
     }
-    #tiposParticipacao
     #processoInfo
     #googleToken
-    
+    #sheetsLists
+    #projurisLists
+
     constructor(processoInfo, googleToken) {
         this.#processoInfo = processoInfo
         this.#googleToken = googleToken
@@ -29,55 +31,79 @@ export default class Drafter {
 
     async draftProcessoInfo() {
         await insertAdaptedAndamentoNames(this.#processoInfo, this.#googleToken)
-        if (Drafter.hasErrors([this.#processoInfo])) return { hasErrors: true, errorMsgs: this.#processoInfo.errorMsgs }
+        if (hasErrors([this.#processoInfo])) return { hasErrors: true, errorMsgs: this.#processoInfo.errorMsgs }
     
+        await this.#loadLists()
         const projurisPartes = await this.#getAdaptedPartes()
-        
-        const tarefasParams = await this.#getTarefasParams(this.#processoInfo.audienciaFutura)
-        const projurisProcesso = await this.#getAdaptedProcesso(projurisPartes.clientRole[0], tarefasParams.allResponsaveisList)
+        const tarefasParams = await this.#getTarefasParams()
+        const projurisProcesso = await this.#getAdaptedProcesso(projurisPartes.clientRole[0])
         const projurisAndamentos = await this.#getAdaptedAndamentos()
         const projurisPedidos = await this.#getAdaptedPedidos(projurisPartes.clientRole[0]?.clientName, projurisProcesso.dataDistribuicao)
-        const errors = Drafter.hasErrors([projurisProcesso, projurisAndamentos, projurisPedidos])
+        const projurisFaturamentos = await this.#getAdaptedFaturamentos(projurisPartes.clientRole[0]?.clientName)
+        console.log({
+            projurisProcesso,
+            projurisPartes,
+            projurisAndamentos,
+            projurisPedidos,
+            projurisFaturamentos,
+            tarefasParams,
+            hasErrors: false
+        })
+        const errors = hasErrors( [projurisProcesso, projurisAndamentos, projurisPedidos, projurisFaturamentos ])
         if (errors) return { hasErrors: true, errorMsgs: errors }
         return {
             projurisProcesso,
             projurisPartes,
             projurisAndamentos: projurisAndamentos.values,
             projurisPedidos: projurisPedidos.values,
+            projurisFaturamentos: projurisFaturamentos.values,
             tarefasParams,
             hasErrors: false
         }
     }
     
-    static hasErrors(projurisEntitiesArray) {
-        const allErrors = []
-        projurisEntitiesArray.forEach(projurisEntity => {
-            const errorMsgs = projurisEntity.errorMsgs
-            if (errorMsgs && Array.isArray(errorMsgs) && errorMsgs.length > 0) {
-                allErrors.push(...errorMsgs)
-            }
-        })
-        if (allErrors.length === 0) return false
-        return allErrors
-    }
-    
-    static async getGtCrew(grupoDeTrabalhoName, allResponsaveisList, token = undefined) {
-        if (grupoDeTrabalhoName === undefined) return undefined
-        if (!allResponsaveisList) {
-            const response = await fetchProjurisInfo(endPoints.responsaveis)
-            allResponsaveisList = await extractOptionsArray(response)
+    async #loadLists() {
+        const googleSheetsFetchPromises = [
+            fetchGoogleSheetData("clientes", this.#googleToken),
+            fetchGoogleSheetData("pedidosProvisionamentos", this.#googleToken),
+            fetchGoogleSheetData("faturamentos", this.#googleToken),
+        ]
+        const projurisFetchPromises = [
+            fetchProjurisInfo(endPoints.tiposParticipacao),
+            fetchProjurisInfo(endPoints.varas),
+            fetchProjurisInfo(endPoints.tiposVara),
+            fetchProjurisInfo(endPoints.tiposJustica),
+            fetchProjurisInfo(endPoints.areas),
+            fetchProjurisInfo(endPoints.fases),
+            fetchProjurisInfo(endPoints.gruposTrabalho),
+            fetchProjurisInfo(endPoints.camposDinamicos),   
+            fetchProjurisInfo(endPoints.responsaveis),
+            fetchProjurisInfo(endPoints.tiposTarefa),
+            fetchProjurisInfo(endPoints.contasBancarias)
+        ]
+
+        const googleSheetResponses = await Promise.all(googleSheetsFetchPromises)
+        const projurisResponses = await Promise.all(projurisFetchPromises)
+
+        const [
+            clientsList, allClientsProvisionsList, allClientsFaturamentosList
+        ] = await Promise.all(googleSheetResponses.map(response => extractValuesFromSheetsPromise(response)))
+        const [
+            tiposParticipacaoList, varasList, tiposVaraList, tiposJusticaList,
+            areasList, fasesList, gtsList, camposDinamicosList,
+            allResponsaveisList, tiposTarefaList, contasBancariasList
+        ] = await Promise.all(projurisResponses.map(response => extractOptionsArray(response)))
+
+        this.#sheetsLists = {
+            clientsList, allClientsProvisionsList, allClientsFaturamentosList
         }
-        const fetchedValues = await fetchGoogleSheetRowsMatchingExpression("gts", grupoDeTrabalhoName, token)
-        if (!fetchedValues.found) throw fetchedValues.value
-        const [ , , advsNames, coordenadoresNames, estagiariosNames, controladoriaNames ] = fetchedValues.value
-        const namesArrays = [ advsNames, coordenadoresNames, estagiariosNames, controladoriaNames ]
-            .map(commaSeparatedNames => commaSeparatedNames.split(",")
-            .map(name => name.trim()))
-        const [ coordenadores, advs, estagiarios, controladoria ] = namesArrays
-            .map(nameArray => Drafter.#getGtEntities(nameArray, allResponsaveisList))
-        return { coordenadores, advs, estagiarios, controladoria }
+        this.#projurisLists = {
+            tiposParticipacaoList, varasList, tiposVaraList, tiposJusticaList,
+            areasList, fasesList, gtsList, camposDinamicosList,
+            allResponsaveisList, tiposTarefaList, contasBancariasList
+        }
     }
-    
+
     async #getAdaptedPartes() {
         const projurisPartes = {
             partesRequerentes: [],
@@ -86,23 +112,12 @@ export default class Drafter {
             magistrado: undefined,
             clientRole: undefined
         }
-        const promises = await this.#makeprojurisPartesFetches()
-        const responses = await Promise.all(promises)
-        const clientsList = await extractValuesFromSheetsPromise(responses[0])
-        this.#tiposParticipacao = await extractOptionsArray(responses[1])
         this.#pushAdaptedPartesIntoPolo(this.#processoInfo.partesRequerentes, projurisPartes.partesRequerentes)
         this.#pushAdaptedPartesIntoPolo(this.#processoInfo.partesRequeridas, projurisPartes.partesRequeridas)
         this.#pushAdaptedPartesIntoPolo(this.#processoInfo.outrosParticipantes, projurisPartes.terceiros)
         projurisPartes.magistrado = this.#getProjurisAdaptedMagistrado(this.#processoInfo.juizAtual)
-        projurisPartes.clientRole = this.#identifyClientes(clientsList, projurisPartes)
+        projurisPartes.clientRole = this.#identifyClientes(projurisPartes)
         return projurisPartes
-    }
-    
-    async #makeprojurisPartesFetches() {
-        return [
-            fetchGoogleSheetData("clientes", this.#googleToken),
-            fetchProjurisInfo(endPoints.tiposParticipacao)
-        ]
     }
     
     #pushAdaptedPartesIntoPolo(partesArray, polo) {
@@ -134,7 +149,7 @@ export default class Drafter {
         projurisParte.habilitado = true
         if (parte.tipoDeParte === tiposParte.advogado) projurisParte.profissao = { chave: 616, valor: "Advogado" }
         projurisParte.tipoEnvolvido = projurisTipoEnvolvidoType[parte.tipoDeParte]
-        projurisParte.tipoParticipacao = Drafter.#filterProjurisOptions(this.#tiposParticipacao, { key: "valor", operator: operators.insensitiveStrictEquality, val: parte.tipoDeParte, flattenOptions: true })[0]
+        projurisParte.tipoParticipacao = filterProjurisOptions(this.#projurisLists.tiposParticipacaoList, { ...Drafter.filterTemplate, val: parte.tipoDeParte, flattenOptions: true })[0]
         projurisParte.flagPrincipal = (index === 0)
         projurisParte.flagCompleto = true
         return projurisParte
@@ -154,8 +169,8 @@ export default class Drafter {
         projurisParte.observacaoGeral = ""
         projurisParte.habilitado = true
         projurisParte.tipoEnvolvido = projurisTipoEnvolvidoType.juiz
-        const filter = { key: "valor", operator: operators.insensitiveStrictEquality, val: "magistrado", flattenOptions: true }
-        projurisParte.tipoParticipacao = Drafter.#filterProjurisOptions(this.#tiposParticipacao, filter)[0]
+        const filter = { ...Drafter.filterTemplate, val: "magistrado", flattenOptions: true }
+        projurisParte.tipoParticipacao = filterProjurisOptions(this.#projurisLists.tiposParticipacaoList, filter)[0]
         projurisParte.flagPrincipal = false
         projurisParte.flagCompleto = true
         projurisParte.classificacao = [
@@ -168,7 +183,7 @@ export default class Drafter {
         return projurisParte
     }
     
-    #identifyClientes(clientsList, partes) {
+    #identifyClientes(partes) {
         const allPartes = [
             ...partes.partesRequerentes,
             ...partes.partesRequeridas,
@@ -176,7 +191,7 @@ export default class Drafter {
         ]
         const foundClients = []
         allPartes.forEach (parte => {
-            const clientParte = clientsList.find(client => {
+            const clientParte = this.#sheetsLists.clientsList.find(client => {
                 return client[0].toLowerCase().trim() === parte.nomePessoa.toLowerCase().trim()
             })
            if (clientParte) {
@@ -193,35 +208,21 @@ export default class Drafter {
         return foundClients
     }
     
-    async #getTarefasParams(audienciaFutura) {
-        const promises = this.#makeProjurisTarefasFetches()
-        const responses = await Promise.all(promises)
-        const [ allResponsaveisList, tiposTarefa ]
-            = await Promise.all(responses.map(response => extractOptionsArray(response)))
-        return { allResponsaveisList, tiposTarefa, audienciaFutura }
+    async #getTarefasParams() {
+        return {
+            allResponsaveisList: this.#projurisLists.allResponsaveisList,
+            tiposTarefa: this.#projurisLists.tiposTarefaList,
+            audienciaFutura: this.#processoInfo.audienciaFutura
+        }
     }
     
-    #makeProjurisTarefasFetches() {
-        return [
-            fetchProjurisInfo(endPoints.responsaveis),
-            fetchProjurisInfo(endPoints.tiposTarefa)
-        ]
-    }
-    
-    async #getAdaptedProcesso(clientRole, allResponsaveisList) {
-        const getProjurisItem = (itemType, list, filter, searchedValue) => {
-            searchedValue = searchedValue ?? juizoInfo[itemType]
-            filter = filter ?? { ...Drafter.#filterTemplate, val: searchedValue }
-            if (!searchedValue) {
-                const errorMsg = generateErrMsg.noMatchInGoogle(this.#processoInfo.juizo.nomeOriginalSistemaJustica, itemType)
-                projurisProcesso.errorMsgs.push(errorMsg)
-                return Drafter.#errorMsgFallback
-            }
-            const matchingItems = Drafter.#filterProjurisOptions(list, filter)
+    async #getAdaptedProcesso(clientRole) {
+        const getProjurisItem = (itemType, list, filter) => {
+            const matchingItems = filterProjurisOptions(list, filter)
             if (!matchingItems) {
-                const errorMsg = generateErrMsg.noMatchInProjuris(searchedValue, itemType)
+                const errorMsg = generateErrMsg.noMatchInProjuris(filter.val, itemType)
                 projurisProcesso.errorMsgs.push(errorMsg)
-                return Drafter.#errorMsgFallback
+                return this.#errorMsgFallback
             }
             return matchingItems[0]
         }
@@ -251,23 +252,20 @@ export default class Drafter {
             orgaoJudicial: googleJuizoInfo.value[6],
         }
         projurisProcesso.tipoInstancia = juizoInfo.tipoInstancia
-        const promises = this.#makeprojurisProcessoFetches(codTipoJustica, juizoInfo.comarca)
-        const responses = await Promise.all(promises)
-        const [ varasList, tiposVaraList, isntanciasCnjList, orgaosJudiciaisList, 
-            tiposJusticaList, areasList, fasesList, gtsList, camposDinamicosList ]
-            = await Promise.all(responses.map(response => extractOptionsArray(response)))
-        projurisProcesso.vara = getProjurisItem("vara", varasList)
-        projurisProcesso.tipoVara = getProjurisItem("tipoVara", tiposVaraList)
+        const dependentFetchesResponses = await Promise.all(this.#makeProjurisProcessoFetches(codTipoJustica, juizoInfo.comarca))
+        const [ instanciasCnjList, orgaosJudiciaisList ] = await Promise.all(dependentFetchesResponses.map(response => extractOptionsArray(response)))
+        projurisProcesso.vara = getProjurisItem("vara", this.#projurisLists.varasList, { ...Drafter.filterTemplate, val: juizoInfo.vara })
+        projurisProcesso.tipoVara = getProjurisItem("tipoVara", this.#projurisLists.tiposVaraList, { ...Drafter.filterTemplate, val: juizoInfo.tipoVara })
+        projurisProcesso.tipoJustica = getProjurisItem("tipoJustica", this.#projurisLists.tiposJusticaList, { key: "chave", operator: operators.insensitiveStrictEquality, val: codTipoJustica })
+        projurisProcesso.area = getProjurisItem("area", this.#projurisLists.areasList, { ...Drafter.filterTemplate, val: "CONSUMIDOR" })
+        projurisProcesso.fase = getProjurisItem("fase", this.#projurisLists.fasesList, { ...Drafter.filterTemplate, val: "Inicial" })
+        projurisProcesso.instanciaCnj = getProjurisItem("instanciaCnj", instanciasCnjList, { ...Drafter.filterTemplate, val: juizoInfo.instanciaCnj })
+        projurisProcesso.orgaoJudicial = getProjurisItem("orgaoJudicial", orgaosJudiciaisList, { ...Drafter.filterTemplate, val: juizoInfo.orgaoJudicial })
         projurisProcesso.complementoVara = juizoInfo.comarca
-        projurisProcesso.instanciaCnj = getProjurisItem("instanciaCnj", isntanciasCnjList)
-        projurisProcesso.orgaoJudicial = getProjurisItem("orgaoJudicial", orgaosJudiciaisList)
-        projurisProcesso.tipoJustica = getProjurisItem("tipoJustica", tiposJusticaList, { key: "chave", operator: operators.insensitiveStrictEquality, val: codTipoJustica }, codTipoJustica)
-        projurisProcesso.area = getProjurisItem("area", areasList, { ...Drafter.#filterTemplate, val: "CONSUMIDOR" }, "CONSUMIDOR")
-        projurisProcesso.fase = getProjurisItem("fase", fasesList, { ...Drafter.#filterTemplate, val: "Inicial" }, "Inicial")
-        const gts = Drafter.#filterProjurisOptions(gtsList, { ...Drafter.#filterTemplate, val: clientRole?.gt })
+        const gts = filterProjurisOptions(this.#projurisLists.gtsList, { ...Drafter.filterTemplate, val: clientRole?.gt })
         projurisProcesso.gruposDeTrabalho = gts ? gts[0] : undefined
         try {
-            const gtCrew = await Drafter.getGtCrew(clientRole?.gt, allResponsaveisList, this.#googleToken)
+            const gtCrew = await getGtCrew(clientRole?.gt, this.#projurisLists.allResponsaveisList, this.#googleToken)
             projurisProcesso.responsaveis = gtCrew?.advs
         } catch (e) {
             projurisProcesso.errorMsgs.push(e)
@@ -275,7 +273,7 @@ export default class Drafter {
         }
         projurisProcesso.classeCnj = this.#fetchCnjItem(this.#processoInfo.tipoDeAcao, "classe")
         projurisProcesso.assuntoCnj = this.#fetchCnjItem(this.#processoInfo.causaDePedir, "assunto")
-        projurisProcesso.campoDinamicoDadoWs = this.#getCamposDinamicosProjuris(camposDinamicosList)
+        projurisProcesso.campoDinamicoDadoWs = this.#getCamposDinamicosProjuris()
         return projurisProcesso
     }
     
@@ -283,7 +281,7 @@ export default class Drafter {
         return REGEX_CNJ_NUMBER.exec(numeroProcesso)[2]
     }
     
-    #makeprojurisProcessoFetches(codTipoJustica, comarca) {
+    #makeProjurisProcessoFetches(codTipoJustica, comarca) {
         const endPointInstanciaCnj = endPoints.instanciasCnj + codTipoJustica
         const maxProjurisEntriesPerPage = 30
         const endPointOrgaoJudicial = endPoints.orgaoJudicial + '(nomeOrgao:' + comarca
@@ -291,44 +289,11 @@ export default class Drafter {
             + '$pagina:0$quantidadeRegistros:' + maxProjurisEntriesPerPage + ')'
         
         return [
-            fetchProjurisInfo(endPoints.varas),
-            fetchProjurisInfo(endPoints.tiposVara),
             fetchProjurisInfo(endPointInstanciaCnj),
             fetchProjurisInfo(endPointOrgaoJudicial),
-            fetchProjurisInfo(endPoints.tiposJustica),
-            fetchProjurisInfo(endPoints.areas),
-            fetchProjurisInfo(endPoints.fases),
-            fetchProjurisInfo(endPoints.gruposTrabalho),
-            fetchProjurisInfo(endPoints.camposDinamicos)
         ]
     }
     
-    static #filterProjurisOptions(rawOptions, filterObject) {
-        let flattenedOptions
-        if (filterObject.flattenOptions) {
-            flattenedOptions = flattenObjectsArray(rawOptions)
-        }
-        const options = flattenedOptions ?? rawOptions
-        const filtered = options
-            .filter(option => compareWithOperator(
-                option[filterObject.key],
-                filterObject.operator,
-                filterObject.val)
-            )
-        return (filtered.length !== 0) ? filtered : undefined
-    }
-    
-    static #getGtEntities(names, allResponsaveisList, filterTemplate = Drafter.#filterTemplate) {
-        if (!Array.isArray(names)) names = [ names ]
-        const onlyOneEmptyString = names.length === 1 && (names[0] == "" || names[0] == undefined)
-        if (names.length === 0 || onlyOneEmptyString) return undefined
-        return names.map(name => {
-            const filteredOptions = Drafter.#filterProjurisOptions(allResponsaveisList, {...filterTemplate, val: name})
-            if (filteredOptions !== undefined) return filteredOptions[0]
-            else throw generateErrMsg.noMatchInProjuris(name, "usuario")
-        })
-    }
-
     #fetchCnjItem(itemPath, itemType) {
         const allItems = {
             assunto: cnjAssuntos,
@@ -373,22 +338,22 @@ export default class Drafter {
         else return this.#recursivelyGetMenuItem(oneLevelChildrenArray, searchTermsPath)
     }
 
-    #getCamposDinamicosProjuris(camposDinamicosList) {
+    #getCamposDinamicosProjuris() {
         const numOrgaoSegundoGrau = { campoDinamicoTipo: "LISTA_SELECAO_UNICA", codigoCampoDinamico: 1186 }
         const tipoOrgaoSegundoGrau = { campoDinamicoTipo: "LISTA_SELECAO_UNICA", codigoCampoDinamico: 1185 }
         const relatorSegundoGrau = { campoDinamicoTipo: "LISTA_MULTIPLA_SELECAO", codigoCampoDinamico: 1189 }
         const numOrgaoTerceiroGrau = { campoDinamicoTipo: "LISTA_SELECAO_UNICA", codigoCampoDinamico: 1187 }
         const tipoOrgaoTerceiroGrau = { campoDinamicoTipo: "LISTA_SELECAO_UNICA", codigoCampoDinamico: 1188 }
-        const faturamento = this.#getFaturamentoProjuris(camposDinamicosList)
-        const sistema = this.#getSistemaProjuris(camposDinamicosList)
+        const faturamento = this.#getFaturamentoProjuris()
+        const sistema = this.#getSistemaProjuris()
         const valorInicialLiquidacao = { campoDinamicoTipo: "TEXTO_LONGO", codigoCampoDinamico: 4330 }
         const temasProcessuais = { campoDinamicoTipo: "LISTA_MULTIPLA_SELECAO", codigoCampoDinamico: 4689 }
         return [ numOrgaoSegundoGrau, tipoOrgaoSegundoGrau, relatorSegundoGrau, numOrgaoTerceiroGrau,
             tipoOrgaoTerceiroGrau, faturamento, sistema, valorInicialLiquidacao, temasProcessuais ]
     }
 
-    #getFaturamentoProjuris(camposDinamicosList) {
-        const faturamentosInfo = this.#getItemsList(camposDinamicosList, 4138)
+    #getFaturamentoProjuris() {
+        const faturamentosInfo = this.#getItemsList(4138)
         const faturamentoProjurisInfo = this.#getItemsInfo(faturamentosInfo, "Não faturado")
         return {
             campoDinamicoTipo: "LISTA_MULTIPLA_SELECAO",
@@ -397,8 +362,8 @@ export default class Drafter {
         }
     }
 
-    #getSistemaProjuris(camposDinamicosList) {
-        const sistemasInfo = this.#getItemsList(camposDinamicosList, 3941)
+    #getSistemaProjuris() {
+        const sistemasInfo = this.#getItemsList(3941)
         const sistemaProjurisInfo = this.#getItemsInfo(sistemasInfo, Drafter.#nomeSistemaProjuris[this.#processoInfo.sistema.toLowerCase()])
         return {
             campoDinamicoTipo: "LISTA_SELECAO_UNICA",
@@ -407,8 +372,8 @@ export default class Drafter {
         }
     }
 
-    #getItemsList(camposDinamicosList, codigoCampoDinamico) {
-        const itemsInfo = camposDinamicosList.filter(campoDinamico => campoDinamico.codigo === codigoCampoDinamico)
+    #getItemsList(codigoCampoDinamico) {
+        const itemsInfo = this.#projurisLists.camposDinamicosList.filter(campoDinamico => campoDinamico.codigo === codigoCampoDinamico)
         if (itemsInfo.length == 0) return null
         return itemsInfo[0].campoDinamicoItemLista
     }
@@ -421,13 +386,13 @@ export default class Drafter {
     }
 
 
-    #getSistemaProjurisInfo(sistemasList) {
-        if (!sistemasList || sistemasList?.length == 0) return null
-        const nomeSistemaProjuris = Drafter.#nomeSistemaProjuris[this.#processoInfo.sistema]
-        const sistemaMatches = sistemasList.filter(sistema => sistema.nome.toLowerCase() === nomeSistemaProjuris.toLowerCase())
-        if (!sistemaMatches || sistemaMatches.length == 0) return null
-        return sistemaMatches[0]
-    }
+    // #getSistemaProjurisInfo(sistemasList) {
+    //     if (!sistemasList || sistemasList?.length == 0) return null
+    //     const nomeSistemaProjuris = Drafter.#nomeSistemaProjuris[this.#processoInfo.sistema]
+    //     const sistemaMatches = sistemasList.filter(sistema => sistema.nome.toLowerCase() === nomeSistemaProjuris.toLowerCase())
+    //     if (!sistemaMatches || sistemaMatches.length == 0) return null
+    //     return sistemaMatches[0]
+    // }
 
     async #getAdaptedAndamentos() {
         const relevantAndamentos = this.#filterRelevantAndamentos()
@@ -465,9 +430,8 @@ export default class Drafter {
         const tipoAndamento = tiposAndamento
             .filter(tipoAndamento => tipoAndamento.nome.toLowerCase() === andamento.nomeAdaptadoAoCliente.toLowerCase())
         if (Array.isArray(tipoAndamento) && tipoAndamento.length === 0) {
-            const errorMsg = generateErrMsg.noMatchInGoogle(andamento.nomeAdaptadoAoCliente, "andamento")
-            projurisAndamentos.errorMsgs.push(errorMsg)
-            return Drafter.#errorMsgFallback
+            projurisAndamentos.errorMsgs.push(generateErrMsg.noMatchInGoogle(andamento.nomeAdaptadoAoCliente, "andamento"))
+            return this.#errorMsgFallback
         } else {
             projurisAndamento.codigoTipoAndamento = tipoAndamento[0].codigoAndamentoTipo
         }
@@ -476,22 +440,16 @@ export default class Drafter {
     
     async #getAdaptedPedidos(clientName, dataDistribuicao, causasDePedir = []) {
         const projurisPedidos = { values: [], errorMsgs: [] }
-        projurisPedidos.values = await this.#getStandardPedidosByClientAndCausaPedir(clientName, dataDistribuicao, causasDePedir)
-        const pedidosList = await this.#fetchRelevantPedidosProjurisData(projurisPedidos.values)
-        this.#pushNomeAndCodigoIntoPedidos(projurisPedidos, pedidosList)
+        if (clientName) {
+            projurisPedidos.values = await this.#getStandardPedidosByClientAndCausaPedir(clientName, dataDistribuicao, causasDePedir)
+            const pedidosList = await this.#fetchRelevantPedidosProjurisData(projurisPedidos.values)
+            this.#pushNomeAndCodigoIntoPedidos(projurisPedidos, pedidosList)
+        }
         return projurisPedidos
-    
-        // As linhas abaixo eram para usar os pedidos cadastrados pelo autor (e não da planilha de provisionamento)
-        // const cadastradosAutor = this.#processoInfo.pedidos.map(pedido => {
-        //     const nomePedido = pedido.split(" « ")[0]
-        //     const projurisPedido = new ProjurisPedidoDataStructure()
-        //     projurisPedido.nomePedido = nomePedido
-        //     return projurisPedido
-        // })
     }
     
     async #getStandardPedidosByClientAndCausaPedir(clientName, dataDistribuicao, causasDePedir = []) {
-        const clientFilteredProvisionsList = await this.#getAllClientsProvisions(clientName)
+        const clientFilteredProvisionsList = filterProjurisOptions(this.#sheetsLists.allClientsProvisionsList, { key: 0, operator: operators.insensitiveStrictEquality, val: clientName })
         const clientProvisionsByCausasDePedir = this.#filterClientsProvisionsByCausasDePedir(clientFilteredProvisionsList, causasDePedir)
         return clientProvisionsByCausasDePedir.map(pedidoProvision => {
             const projurisPedido = new ProjurisPedidoDataStructure()
@@ -523,23 +481,6 @@ export default class Drafter {
         })
     }
     
-    async #getAllClientsProvisions(clientName) {
-        if (clientName === undefined) return []
-        const promises = await this.#makeprojurisPedidosFetches()
-        const responses = await Promise.all(promises)
-        const allClientsProvisionsList = await extractValuesFromSheetsPromise(responses[0])
-        const filter = {
-            key: 0,
-            operator: operators.insensitiveStrictEquality,
-            val: clientName
-        }
-        return Drafter.#filterProjurisOptions(allClientsProvisionsList, filter)
-    }
-    
-    async #makeprojurisPedidosFetches() {
-        return [ fetchGoogleSheetData("pedidosProvisionamentos", this.#googleToken) ]
-    }
-    
     #filterClientsProvisionsByCausasDePedir(provisionsList, causasDePedir) {
         if (causasDePedir.length === 0) {
             const fallbackValue = "geral"
@@ -549,5 +490,42 @@ export default class Drafter {
             return provisionsList
                 .filter(clientProvision => causasDePedir.includes(clientProvision[1]))
         }
-    }    
+    }
+
+    async #getAdaptedFaturamentos(clientName, audienciaFutura) {
+        const projurisFaturamentos = { values: [], errorMsgs: [] }
+        if (clientName) {
+            projurisFaturamentos.values = await this.#getStandardFaturamentosByClient(clientName, audienciaFutura)
+        }
+        return projurisFaturamentos
+    }
+
+    async #getStandardFaturamentosByClient(clientName) {
+        const clientFilteredFaturamentosList = filterProjurisOptions(this.#sheetsLists.allClientsFaturamentosList, { key: 0, operator: operators.insensitiveStrictEquality, val: clientName })
+        const clientFaturamentosAfterConditions = this.#filterClientsFaturamentosByConditions(clientFilteredFaturamentosList)
+        return clientFaturamentosAfterConditions.map(faturamento => {
+            const [ , descricaoRawStr, , valorRawStr, daysToVencimentoRawStr, bancoRawStr ] = faturamento
+            const descricao = descricaoRawStr.trim()
+            const valor = parseFloat(valorRawStr)
+            const vencimento = new Date(new Date().getDate() + (parseInt(daysToVencimentoRawStr) * 24 * 60 * 60 * 1000))
+            const bancoRawInfo = filterProjurisOptions(this.#projurisLists.contasBancariasList, { key: "nomeConta", operator: operators.insensitiveStrictEquality, val: bancoRawStr })[0]
+            const banco = this.#getProjurisFormattedBanco(bancoRawInfo)
+            return new ProjurisFaturamentoDataStructure(clientName, valor, new Date(), vencimento, banco, descricao)
+        })
+    }
+
+    #filterClientsFaturamentosByConditions(list) {
+        return list.filter(faturamento => {
+            const condicao = faturamento[2]
+            if (condicao.toLowerCase() === "audiencia" || condicao.toLowerCase() === "audiência" && !this.#processoInfo.audienciaFutura) return false
+            return true
+        })
+    }
+
+    #getProjurisFormattedBanco(bancoRawInfo) {
+        return {
+            chave: bancoRawInfo.codigoConta,
+            valor: bancoRawInfo.nomeConta
+        }
+    }
 }
