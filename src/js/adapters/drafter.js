@@ -455,7 +455,8 @@ export default class Drafter {
             const projurisPedido = new ProjurisPedidoDataStructure()
             projurisPedido.nomePedido = pedidoProvision[2].trim()
             projurisPedido.dataPedido = dataDistribuicao
-            projurisPedido.valorProvisionado = pedidoProvision[4]
+            const valor = pedidoProvision[4].replace(/[^\d,]/g,'')
+            projurisPedido.valorProvisionado = valor
             projurisPedido.estimativaTipo = pedidoProvision[3]
             projurisPedido.riscoPorcentagem = pedidoProvision[5]
             return projurisPedido

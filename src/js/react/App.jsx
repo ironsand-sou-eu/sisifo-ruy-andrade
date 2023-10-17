@@ -42,14 +42,17 @@ export default function App() {
             },
             projurisPartes: { partesRequerentes, partesRequeridas },
             responsaveisList,
-            projurisPedidos
+            projurisPedidos: pedidos,
+            projurisFaturamentos: faturamentos,
+            bancosList
         } = processoDraftedData
         const data = {
             numeroDoProcesso, area, tipoJustica, vara, tipoVara, assuntoCnj, fase, responsaveisList, gruposDeTrabalho,
-            responsaveis, segredoJustica, partesRequerentes, partesRequeridas, projurisPedidos,
+            responsaveis, segredoJustica, partesRequerentes, partesRequeridas, pedidos, faturamentos,
             assunto: null,
             dataCitacao: new Date().toISOString().substring(0, 10),
             dataRecebimento: new Date().toISOString().substring(0, 10),
+            bancosList
         }
         setFormData(data)
     }, [processoDraftedData])
