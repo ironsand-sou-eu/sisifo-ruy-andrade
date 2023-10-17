@@ -1,17 +1,17 @@
 import React from "react"
 
-function Text(props) {
+function Text({type, value, name, label, placeholder, onChange, isDisabled}) {
     return (
         <div className="col-sm-6">
-            <label className="sisifo-label">{props.label}</label>
+            <label className="sisifo-label">{label}</label>
             <div className="col-sm-12 inputGroupContainer">
-                <input name={props.name}
-                    placeholder={props.placeholder}
-                    value={props.value ?? ''}
-                    onChange={props.onChange}
+                <input name={name}
+                    placeholder={placeholder}
+                    value={value ?? ''}
+                    onChange={onChange}
                     className="form-control"
-                    type={props.type}
-                    disabled={props.isDisabled ? true : false}
+                    type={type}
+                    disabled={isDisabled ? true : false}
                 />
             </div>
         </div>

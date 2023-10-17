@@ -6,16 +6,18 @@ import { endPoints, loadSimpleOptions } from "../../connectors/projuris"
 import useProjurisTranslator from "../hooks/useProjurisTranslator"
 import { operators } from "../../utils/utils.js"
 import { prognosticoOptions } from "../../utils/enumsAndHardcoded"
+import useLocation from "../hooks/useLocation"
 
-function Pedido(props) {
+export default function Pedido({pedido, index, onChange}) {
     const { removeValueLabel } = useProjurisTranslator()
+    const { formatCurrencyToPtBr, formatStringToNumber } = useLocation()
     const filterFunction = input => loadSimpleOptions(endPoints.pedidos + input, { key: "valor", operator: operators.insentiviveIncludes, val: input })
 
     function getPrognosticoOption(prognosticoValue) {
         return prognosticoOptions.find(prognosticoOption => prognosticoOption.value === prognosticoValue)
     }
 
-    function updatePedido(newLabel, newValue, basePedido = props.pedido) {
+    function updatePedido(newLabel, newValue, basePedido = pedido) {
         return {...basePedido, [newLabel]: newValue}
     }
 
@@ -27,7 +29,7 @@ function Pedido(props) {
         })
         return {
             type: "update",
-            targetIndex: props.index,
+            targetIndex: index,
             newPedido
         }
     }
@@ -35,32 +37,21 @@ function Pedido(props) {
     function getDeleteParams() {
         return {
             type: "delete",
-            targetIndex: props.index
+            targetIndex: index
         }
     }
 
-    const nomeValue = props.pedido.codigoPedido ?
-        { value: props.pedido.codigoPedido, label: props.pedido.nomePedido }
+    const nomeValue = pedido.codigoPedido ?
+        { value: pedido.codigoPedido, label: pedido.nomePedido }
         : undefined
     
     function validateNumberAndUpdate({target}, noDecimals = false) {
         let value = formatStringToNumber(target.value)
         if (!noDecimals) value /=  100
-        props.onChange(getUpdateParams(
+        onChange(getUpdateParams(
             {updatedField: target.name,
             newValue: formatStringToNumber(value)}
         ))
-    }
-
-    function formatNumberToPtbrString(number, decimals = 2) {
-        return number?.toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
-    }
-
-    function formatStringToNumber(string) {
-        if (typeof(string) === "number") return string
-        const onlyDigitsOrCommaString = string?.replace(/[^\d]/g,'')
-        const number = parseFloat(onlyDigitsOrCommaString?.replace(",", "."))
-        return isNaN(number) ? "" : number
     }
 
     return (
@@ -73,7 +64,7 @@ function Pedido(props) {
                     placeholder="Selecione uma opção..."
                     onChange={newData => {
                         const newMappedData = removeValueLabel(newData)
-                        props.onChange(getUpdateParams([
+                        onChange(getUpdateParams([
                             {updatedField: "nomePedido", newValue: newMappedData.valor},
                             {updatedField: "codigoPedido", newValue: newMappedData.chave}
                         ]))
@@ -86,7 +77,7 @@ function Pedido(props) {
 
             <div className="col-sm-2 no-padding">
                 <input name="valorPedido"
-                    value={formatNumberToPtbrString(props.pedido.valorPedido) ?? ''}
+                    value={formatCurrencyToPtBr(pedido.valorPedido) ?? ''}
                     onChange={validateNumberAndUpdate}
                     className="form-control"
                     type="text"
@@ -96,8 +87,9 @@ function Pedido(props) {
             <div className="col-sm-2 no-padding">
                 <Select
                     options={prognosticoOptions}
-                    value={getPrognosticoOption(props.pedido.estimativaTipo)}
-                    onChange={newData => props.onChange(getUpdateParams(
+                    value={getPrognosticoOption(pedido.estimativaTipo)}
+                    placeholder="Selecione uma opção..."
+                    onChange={newData => onChange(getUpdateParams(
                         {updatedField: "estimativaTipo", newValue: newData.value}
                     ))}
                 />
@@ -105,7 +97,7 @@ function Pedido(props) {
 
             <div className="col-sm-2 no-padding">
                 <input name="valorProvisionado"
-                    value={formatNumberToPtbrString(props.pedido.valorProvisionado) ?? ''}
+                    value={formatCurrencyToPtBr(pedido.valorProvisionado) ?? ''}
                     onChange={validateNumberAndUpdate}
                     className="form-control"
                     type="text"
@@ -114,7 +106,7 @@ function Pedido(props) {
 
             <div className="col-sm-1 no-padding">
                 <input name="riscoPorcentagem"
-                    value={formatNumberToPtbrString(props.pedido.riscoPorcentagem, 0) ?? ''}
+                    value={formatCurrencyToPtBr(pedido.riscoPorcentagem, 0) ?? ''}
                     onChange={ev => validateNumberAndUpdate(ev, true)}
                     className="form-control"
                     type="text"
@@ -123,11 +115,9 @@ function Pedido(props) {
             
             <div className="no-padding">
                 <Trash
-                    onClick={() => props.onChange(getDeleteParams())}
+                    onClick={() => onChange(getDeleteParams())}
                 />
             </div>
         </div>
     )
 }
-
-export default Pedido

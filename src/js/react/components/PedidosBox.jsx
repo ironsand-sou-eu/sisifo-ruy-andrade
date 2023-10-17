@@ -8,7 +8,7 @@ export default function PedidosBox({ pedidos, onChange }) {
             pedidos[targetIndex] = newPedido
             return pedidos
         },
-        delete: (targetIndex) => {
+        delete: ({targetIndex}) => {
             pedidos.splice(targetIndex, 1)
             return pedidos
         },
@@ -18,7 +18,6 @@ export default function PedidosBox({ pedidos, onChange }) {
         }
     }
 
-    let i = 0
     return (
         <div className="col-sm-12">
             <Add
@@ -38,7 +37,7 @@ export default function PedidosBox({ pedidos, onChange }) {
             <div className="col-sm-12 inputGroupContainer">
                 {pedidos?.map((pedido, index) => (
                     <Pedido
-                        key={i++}
+                        key={index}
                         index={index}
                         pedido={pedido}
                         onChange={changeParams => {
