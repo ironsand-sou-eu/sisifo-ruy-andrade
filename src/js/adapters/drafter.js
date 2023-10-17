@@ -40,15 +40,6 @@ export default class Drafter {
         const projurisAndamentos = await this.#getAdaptedAndamentos()
         const projurisPedidos = await this.#getAdaptedPedidos(projurisPartes.clientRole[0]?.clientName, projurisProcesso.dataDistribuicao)
         const projurisFaturamentos = await this.#getAdaptedFaturamentos(projurisPartes.clientRole[0]?.clientName)
-        console.log({
-            projurisProcesso,
-            projurisPartes,
-            projurisAndamentos,
-            projurisPedidos,
-            projurisFaturamentos,
-            tarefasParams,
-            hasErrors: false
-        })
         const errors = hasErrors( [projurisProcesso, projurisAndamentos, projurisPedidos, projurisFaturamentos ])
         if (errors) return { hasErrors: true, errorMsgs: errors }
         return {
@@ -58,6 +49,7 @@ export default class Drafter {
             projurisPedidos: projurisPedidos.values,
             projurisFaturamentos: projurisFaturamentos.values,
             tarefasParams,
+            bancosList: this.#projurisLists.bancosFormattedList,
             hasErrors: false
         }
     }
@@ -79,7 +71,7 @@ export default class Drafter {
             fetchProjurisInfo(endPoints.camposDinamicos),   
             fetchProjurisInfo(endPoints.responsaveis),
             fetchProjurisInfo(endPoints.tiposTarefa),
-            fetchProjurisInfo(endPoints.contasBancarias)
+            fetchProjurisInfo(endPoints.bancos)
         ]
 
         const googleSheetResponses = await Promise.all(googleSheetsFetchPromises)
@@ -91,16 +83,24 @@ export default class Drafter {
         const [
             tiposParticipacaoList, varasList, tiposVaraList, tiposJusticaList,
             areasList, fasesList, gtsList, camposDinamicosList,
-            allResponsaveisList, tiposTarefaList, contasBancariasList
+            allResponsaveisList, tiposTarefaList, bancosList
         ] = await Promise.all(projurisResponses.map(response => extractOptionsArray(response)))
 
         this.#sheetsLists = {
             clientsList, allClientsProvisionsList, allClientsFaturamentosList
         }
+        const bancosFormattedList = bancosList.map(banco => this.#formatBancoToProjuris(banco))
         this.#projurisLists = {
             tiposParticipacaoList, varasList, tiposVaraList, tiposJusticaList,
             areasList, fasesList, gtsList, camposDinamicosList,
-            allResponsaveisList, tiposTarefaList, contasBancariasList
+            allResponsaveisList, tiposTarefaList, bancosFormattedList
+        }
+    }
+
+    #formatBancoToProjuris(bancoRawInfo) {
+        return {
+            chave: bancoRawInfo.codigoConta,
+            valor: bancoRawInfo.nomeConta
         }
     }
 
@@ -507,9 +507,8 @@ export default class Drafter {
             const [ , descricaoRawStr, , valorRawStr, daysToVencimentoRawStr, bancoRawStr ] = faturamento
             const descricao = descricaoRawStr.trim()
             const valor = parseFloat(valorRawStr)
-            const vencimento = new Date(new Date().getDate() + (parseInt(daysToVencimentoRawStr) * 24 * 60 * 60 * 1000))
-            const bancoRawInfo = filterProjurisOptions(this.#projurisLists.contasBancariasList, { key: "nomeConta", operator: operators.insensitiveStrictEquality, val: bancoRawStr })[0]
-            const banco = this.#getProjurisFormattedBanco(bancoRawInfo)
+            const vencimento = new Date(new Date().getTime() + (parseInt(daysToVencimentoRawStr) * 24 * 60 * 60 * 1000))
+            const banco = filterProjurisOptions(this.#projurisLists.bancosFormattedList, { key: "valor", operator: operators.insensitiveStrictEquality, val: bancoRawStr })[0]
             return new ProjurisFaturamentoDataStructure(clientName, valor, new Date(), vencimento, banco, descricao)
         })
     }
@@ -520,12 +519,5 @@ export default class Drafter {
             if (condicao.toLowerCase() === "audiencia" || condicao.toLowerCase() === "audiência" && !this.#processoInfo.audienciaFutura) return false
             return true
         })
-    }
-
-    #getProjurisFormattedBanco(bancoRawInfo) {
-        return {
-            chave: bancoRawInfo.codigoConta,
-            valor: bancoRawInfo.nomeConta
-        }
     }
 }

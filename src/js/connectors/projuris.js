@@ -21,7 +21,7 @@ export const endPoints = {
     tiposTarefa: "/tarefa-tipo/consulta",
     tiposAndamento: "/andamento-tipo/consulta?",
     pedidos: "/processo/pedido/consultar-por-nome?nome-pedido=",
-    contasBancarias: "/financeiro/conta/consulta",
+    bancos: "/financeiro/conta/consulta",
     buscarPessoa: "/pessoa/consulta",
     criarPessoa: "/pessoa",
     vincularPessoaProcesso: "/processo/envolvido/",
@@ -173,7 +173,6 @@ export async function getGtCrew(grupoDeTrabalhoName, allResponsaveisList, token 
     const namesArrays = [ coordenadoresNames, advsNames, estagiariosNames, controladoriaNames ]
         .map(commaSeparatedNames => commaSeparatedNames.split(",")
         .map(name => name.trim()))
-        console.log({ namesArrays })
     const [ coordenadores, advs, estagiarios, controladoria ] = namesArrays
         .map(nameArray => getGtEntities(nameArray, allResponsaveisList))
     return { coordenadores, advs, estagiarios, controladoria }
