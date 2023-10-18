@@ -9,7 +9,7 @@ import FaturamentosBox from "./FaturamentosBox"
 import Button from "./Button";
 import useValidator from "../hooks/useValidator";
 import { operators } from "../../utils/utils";
-import useProjurisConnector from "../connectors/useProjurisConnector";
+import useProjurisConnector from "../hooks/connectors/useProjurisConnector";
 
 function PopupForm({ onSubmit, data, updateData }) {
     const { endPoints } = useProjurisConnector()

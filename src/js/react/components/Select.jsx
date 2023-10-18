@@ -2,7 +2,7 @@ import React, { useContext } from "react"
 import AsyncSelect from "react-select/async"
 import { LoadingContext, MsgSetterContext } from "../App"
 import useProjurisTranslator from "../hooks/useProjurisTranslator"
-import useProjurisConnector from "../connectors/useProjurisConnector"
+import useProjurisConnector from "../hooks/connectors/useProjurisConnector"
 
 function Select(props) {
     const { getGtCrew, loadSimpleOptions } = useProjurisConnector()

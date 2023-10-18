@@ -2,9 +2,9 @@ import ProjurisTarefaDataStructure from "../../data-structures/ProjurisTarefaDat
 import Exception from "../../exceptions/Exception"
 import generateErrMsg from "../../exceptions/error-message-generator"
 import { hasErrors } from "../../utils/utils"
-import useProjurisConnector from "../connectors/useProjurisConnector"
-import useGoogleSheets from "../connectors/useGoogleSheets"
-import useProjurisCreator from "../creators/useProjurisCreator"
+import useProjurisConnector from "../hooks/connectors/useProjurisConnector"
+import useGoogleSheets from "../hooks/connectors/useGoogleSheets"
+import useProjurisCreator from "../hooks/creators/useProjurisCreator"
 
 export default function usePostConfirmationAdapter(processoDraftedData, msgSetter) {
     const { getGtCrew } = useProjurisConnector()

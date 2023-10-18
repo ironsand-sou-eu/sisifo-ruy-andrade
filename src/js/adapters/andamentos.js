@@ -1,4 +1,4 @@
-import useGoogleSheets from "../react/connectors/useGoogleSheets"
+import useGoogleSheets from "../react/hooks/connectors/useGoogleSheets"
 
 const RECURSO_CONHECIDO_REGEX = /^(Conhecido o recurso de ).+$/gim
 const RECURSO_CONHECIDO_EM_PARTE_REGEX =  /^(Conhecido em parte o recurso de ).+$/gim

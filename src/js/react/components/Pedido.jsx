@@ -6,7 +6,7 @@ import useProjurisTranslator from "../hooks/useProjurisTranslator"
 import { operators } from "../../utils/utils.js"
 import { prognosticoOptions } from "../../utils/enumsAndHardcoded"
 import useLocation from "../hooks/useLocation"
-import useProjurisConnector from "../connectors/useProjurisConnector"
+import useProjurisConnector from "../hooks/connectors/useProjurisConnector"
 
 export default function Pedido({pedido, index, onChange}) {
     const { removeValueLabel } = useProjurisTranslator()

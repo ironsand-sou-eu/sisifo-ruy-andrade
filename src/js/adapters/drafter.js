@@ -9,8 +9,8 @@ import ProjurisFaturamentoDataStructure from "../data-structures/ProjurisFaturam
 import cnjClasses from "../utils/cnj-classes"
 import cnjAssuntos from "../utils/cnj-assuntos"
 import generateErrMsg from "../exceptions/error-message-generator"
-import useGoogleSheets from "../react/connectors/useGoogleSheets"
-import useProjurisConnector from "../react/connectors/useProjurisConnector"
+import useGoogleSheets from "../react/hooks/connectors/useGoogleSheets"
+import useProjurisConnector from "../react/hooks/connectors/useProjurisConnector"
 
 export default class Drafter {
     #errorMsgFallback = "Ocorreu uma falha, vide mensagens de erro"

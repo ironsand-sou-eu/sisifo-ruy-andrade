@@ -1,5 +1,7 @@
 import Drafter from "./adapters/drafter"
-import fetchGoogleToken from "./connectors/google-sheets"
+import useGoogleSheets from "./react/hooks/connectors/useGoogleSheets"
+
+const { fetchGoogleToken } = useGoogleSheets()
 
 const tribunalDomainsToScrappe = [
     "projudi.tjba.jus.br",
