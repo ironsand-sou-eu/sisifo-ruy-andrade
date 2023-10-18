@@ -3,10 +3,10 @@ import useLoader from "./hooks/useLoader"
 import Header from "./components/Header"
 import Messenger from "./components/Messenger"
 import PopupForm from "./components/PopupForm"
-import finalizeProcessoInfo from "../adapters/confirmation-projuris.js"
 import useMsgSetter from "./hooks/useMsgSetter"
 import useErrorHandler from "./hooks/useErrorHandler"
 import useLocation from "./hooks/useLocation"
+import usePostConfirmationAdapter from "./hooks/usePostConfirmationAdapter"
 
 export const LoadingContext = createContext();
 export const MsgSetterContext = createContext();    
@@ -19,6 +19,7 @@ export default function App() {
     const { msgSetter } = useMsgSetter(result, setResult);
     const { adaptedInfoHasErrors } = useErrorHandler(processoDraftedData, msgSetter)
     const { formatDateToInputString } = useLocation()
+    const { finalizeProcessoInfo } = usePostConfirmationAdapter(processoDraftedData, setResult)
     useLoader(processoDraftedData, setProcessoDraftedData)
 
     function updateFormData(newData, changedInput) {
