@@ -8,8 +8,8 @@ import ProjurisParticipanteDataStructure from "../data-structures/ProjurisPartic
 import ProjurisAndamentoDataStructure from "../data-structures/ProjurisAndamentoDataStructure"
 import ProjurisPedidoDataStructure from "../data-structures/ProjurisPedidoDataStructure"
 import ProjurisFaturamentoDataStructure from "../data-structures/ProjurisFaturamentoDataStructure"
-import cnjClasses from "./cnj-classes"
-import cnjAssuntos from "./cnj-assuntos"
+import cnjClasses from "../utils/cnj-classes"
+import cnjAssuntos from "../utils/cnj-assuntos"
 import generateErrMsg from "../exceptions/error-message-generator"
 
 export default class Drafter {
@@ -505,13 +505,37 @@ export default class Drafter {
         const clientFilteredFaturamentosList = filterProjurisOptions(this.#sheetsLists.allClientsFaturamentosList, { key: 0, operator: operators.insensitiveStrictEquality, val: clientName })
         const clientFaturamentosAfterConditions = this.#filterClientsFaturamentosByConditions(clientFilteredFaturamentosList)
         return clientFaturamentosAfterConditions.map(faturamento => {
-            const [ , descricaoRawStr, , valorRawStr, daysToVencimentoRawStr, bancoRawStr ] = faturamento
+            const [ , descricaoRawStr, , valorRawStr, vencimentoCalculationUnitsRawStr, unitsToVencimentoRawStr, bancoRawStr ] = faturamento
             const descricao = descricaoRawStr.trim()
             const valor = parseFloat(valorRawStr)
-            const vencimento = new Date(new Date().getTime() + (parseInt(daysToVencimentoRawStr) * 24 * 60 * 60 * 1000))
+            const vencimento = this.#calculateVencimento(vencimentoCalculationUnitsRawStr, unitsToVencimentoRawStr)
             const banco = filterProjurisOptions(this.#projurisLists.bancosFormattedList, { key: "valor", operator: operators.insensitiveStrictEquality, val: bancoRawStr })[0]
             return new ProjurisFaturamentoDataStructure(clientName, valor, new Date(), vencimento, banco, descricao)
         })
+    }
+
+    #calculateVencimento(calculationUnit, unitsToVencimento) {
+        const vencimentoCalc = {
+            meses: monthsToAdd => {
+                const dueDay = 27
+                const today = new Date()
+                const month = today.getMonth()
+                const year = today.getFullYear()
+                const decemberFromIndexZero = 11
+                
+                let yearsToAdd = Math.floor(monthsToAdd / 12)
+                monthsToAdd -= yearsToAdd % 12
+                if (month + monthsToAdd > decemberFromIndexZero) {
+                    yearsToAdd += 1
+                    monthsToAdd -= 12
+                }
+                const dueMonth = month + monthsToAdd
+                const dueYear = year + yearsToAdd
+                return new Date(dueYear, dueMonth, dueDay)
+            },
+            dias: days => new Date(new Date().getTime() + (parseInt(days) * 24 * 60 * 60 * 1000))
+        }
+        return vencimentoCalc[calculationUnit.toLowerCase()](unitsToVencimento)
     }
 
     #filterClientsFaturamentosByConditions(list) {

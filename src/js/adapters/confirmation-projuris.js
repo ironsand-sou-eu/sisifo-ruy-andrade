@@ -5,7 +5,6 @@ import ProjurisTarefaDataStructure from "../data-structures/ProjurisTarefaDataSt
 import Exception from "../exceptions/Exception"
 import generateErrMsg from "../exceptions/error-message-generator"
 import { hasErrors } from "../utils/utils"
-import Drafter from "./drafter"
 
 let msgSetter
 
