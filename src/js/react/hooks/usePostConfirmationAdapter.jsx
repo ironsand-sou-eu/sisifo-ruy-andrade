@@ -1,12 +1,16 @@
-import { fetchGoogleSheetRowsMatchingExpression } from "../../connectors/google-sheets"
-import { getGtCrew } from "../../connectors/projuris"
-import createAll from "../../creators/projuris"
 import ProjurisTarefaDataStructure from "../../data-structures/ProjurisTarefaDataStructure"
 import Exception from "../../exceptions/Exception"
 import generateErrMsg from "../../exceptions/error-message-generator"
 import { hasErrors } from "../../utils/utils"
+import useProjurisConnector from "../connectors/useProjurisConnector"
+import useGoogleSheets from "../connectors/useGoogleSheets"
+import useProjurisCreator from "../creators/useProjurisCreator"
 
 export default function usePostConfirmationAdapter(processoDraftedData, msgSetter) {
+    const { getGtCrew } = useProjurisConnector()
+    const { createAll } = useProjurisCreator(msgSetter)
+    const { fetchGoogleSheetRowsMatchingExpression } = useGoogleSheets()
+
     async function finalizeProcessoInfo(formData) {
         const { projurisProcessoMerged, projurisPartesMerged, projurisAndamentosMerged, projurisPedidosMerged,
             projurisFaturamentosMerged, tarefasParams } = await mergeFormData(formData)

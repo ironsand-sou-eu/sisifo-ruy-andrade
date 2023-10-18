@@ -1,4 +1,4 @@
-import { fetchGoogleSheetData, extractValuesFromSheetsPromise, getMatchingEntry } from "../connectors/google-sheets"
+import useGoogleSheets from "../react/connectors/useGoogleSheets"
 
 const RECURSO_CONHECIDO_REGEX = /^(Conhecido o recurso de ).+$/gim
 const RECURSO_CONHECIDO_EM_PARTE_REGEX =  /^(Conhecido em parte o recurso de ).+$/gim
@@ -16,7 +16,9 @@ const DECORRIDO_PRAZO_DE_PJE_REGEX =  /^(Decorrido prazo de ).+( em )[0-9\/ :\.]
 const DISPONIBILIZADO_NO_DJ_ELETRONICO_PJE_REGEX =  /^(Disponibilizado no DJ Eletrônico ).+$/gim
 const PUBLICADO_INTIMACAO_EM_PJE_REGEX =  /^(Publicado Intimação em ).+$/gim
 
-async function insertAdaptedAndamentoNames(processoInfo, token) {
+const { fetchGoogleSheetData, extractValuesFromSheetsPromise, getMatchingEntry } = useGoogleSheets()
+
+export default async function insertAdaptedAndamentoNames(processoInfo, token) {
     const promise = fetchGoogleSheetData("andamentos", token)
     const andamentosSheetValues = await extractValuesFromSheetsPromise(promise)
     processoInfo.andamentos.forEach(andamento => {
@@ -77,5 +79,3 @@ function getAdaptedRecursoNameEnds(nomeAndamento) {
         return " e provido em parte"
     }
 }
-
-export default insertAdaptedAndamentoNames

@@ -7,11 +7,12 @@ import Textarea from "./Textarea";
 import PedidosBox from "./PedidosBox";
 import FaturamentosBox from "./FaturamentosBox"
 import Button from "./Button";
-import { endPoints } from "../../connectors/projuris";
 import useValidator from "../hooks/useValidator";
 import { operators } from "../../utils/utils";
+import useProjurisConnector from "../connectors/useProjurisConnector";
 
 function PopupForm({ onSubmit, data, updateData }) {
+    const { endPoints } = useProjurisConnector()
     const [ warningMessages ] = useValidator(data);
     const filter = {
         key: "valor",

@@ -2,15 +2,16 @@ import React from "react"
 import Select from "react-select"
 import AsyncSelect from "react-select/async"
 import Trash from "./Trash"
-import { endPoints, loadSimpleOptions } from "../../connectors/projuris"
 import useProjurisTranslator from "../hooks/useProjurisTranslator"
 import { operators } from "../../utils/utils.js"
 import { prognosticoOptions } from "../../utils/enumsAndHardcoded"
 import useLocation from "../hooks/useLocation"
+import useProjurisConnector from "../connectors/useProjurisConnector"
 
 export default function Pedido({pedido, index, onChange}) {
     const { removeValueLabel } = useProjurisTranslator()
     const { formatCurrencyToPtBr, formatStringToNumber } = useLocation()
+    const { endPoints, loadSimpleOptions } = useProjurisConnector()
     const filterFunction = input => loadSimpleOptions(endPoints.pedidos + input, { key: "valor", operator: operators.insentiviveIncludes, val: input })
 
     function getPrognosticoOption(prognosticoValue) {

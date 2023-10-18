@@ -1,7 +1,5 @@
 import insertAdaptedAndamentoNames from "./andamentos"
 import { REGEX_CNJ_NUMBER, hasErrors, operators } from "../utils/utils"
-import { fetchGoogleSheetData, extractValuesFromSheetsPromise, fetchGoogleSheetRowsMatchingExpression } from "../connectors/google-sheets"
-import fetchProjurisInfo, { extractOptionsArray, endPoints, getGtCrew, filterProjurisOptions } from "../connectors/projuris"
 import { tiposParte, projurisTipoEnvolvidoType } from "../utils/enumsAndHardcoded"
 import ProjurisProcessoDataStructure from "../data-structures/ProjurisProcessoDataStructure"
 import ProjurisParticipanteDataStructure from "../data-structures/ProjurisParticipanteDataStructure"
@@ -11,6 +9,8 @@ import ProjurisFaturamentoDataStructure from "../data-structures/ProjurisFaturam
 import cnjClasses from "../utils/cnj-classes"
 import cnjAssuntos from "../utils/cnj-assuntos"
 import generateErrMsg from "../exceptions/error-message-generator"
+import useGoogleSheets from "../react/connectors/useGoogleSheets"
+import useProjurisConnector from "../react/connectors/useProjurisConnector"
 
 export default class Drafter {
     #errorMsgFallback = "Ocorreu uma falha, vide mensagens de erro"
@@ -19,12 +19,15 @@ export default class Drafter {
         projuditjba: "PROJUDI",
         pje1gtjba: "PJE"
     }
+    #projurisHandler
     #processoInfo
     #googleToken
     #sheetsLists
     #projurisLists
 
     constructor(processoInfo, googleToken) {
+        const { fetchProjurisInfo, extractOptionsArray, endPoints, filterProjurisOptions } = useProjurisConnector()
+        this.#projurisHandler = { fetchProjurisInfo, extractOptionsArray, endPoints, filterProjurisOptions }
         this.#processoInfo = processoInfo
         this.#googleToken = googleToken
     }
@@ -55,23 +58,25 @@ export default class Drafter {
     }
     
     async #loadLists() {
+        const { fetchGoogleSheetData, extractValuesFromSheetsPromise } = useGoogleSheets()
+
         const googleSheetsFetchPromises = [
             fetchGoogleSheetData("clientes", this.#googleToken),
             fetchGoogleSheetData("pedidosProvisionamentos", this.#googleToken),
             fetchGoogleSheetData("faturamentos", this.#googleToken),
         ]
         const projurisFetchPromises = [
-            fetchProjurisInfo(endPoints.tiposParticipacao),
-            fetchProjurisInfo(endPoints.varas),
-            fetchProjurisInfo(endPoints.tiposVara),
-            fetchProjurisInfo(endPoints.tiposJustica),
-            fetchProjurisInfo(endPoints.areas),
-            fetchProjurisInfo(endPoints.fases),
-            fetchProjurisInfo(endPoints.gruposTrabalho),
-            fetchProjurisInfo(endPoints.camposDinamicos),   
-            fetchProjurisInfo(endPoints.responsaveis),
-            fetchProjurisInfo(endPoints.tiposTarefa),
-            fetchProjurisInfo(endPoints.bancos)
+            this.#projurisHandler.fetchProjurisInfo(this.#projurisHandler.endPoints.tiposParticipacao),
+            this.#projurisHandler.fetchProjurisInfo(this.#projurisHandler.endPoints.varas),
+            this.#projurisHandler.fetchProjurisInfo(this.#projurisHandler.endPoints.tiposVara),
+            this.#projurisHandler.fetchProjurisInfo(this.#projurisHandler.endPoints.tiposJustica),
+            this.#projurisHandler.fetchProjurisInfo(this.#projurisHandler.endPoints.areas),
+            this.#projurisHandler.fetchProjurisInfo(this.#projurisHandler.endPoints.fases),
+            this.#projurisHandler.fetchProjurisInfo(this.#projurisHandler.endPoints.gruposTrabalho),
+            this.#projurisHandler.fetchProjurisInfo(this.#projurisHandler.endPoints.camposDinamicos),   
+            this.#projurisHandler.fetchProjurisInfo(this.#projurisHandler.endPoints.responsaveis),
+            this.#projurisHandler.fetchProjurisInfo(this.#projurisHandler.endPoints.tiposTarefa),
+            this.#projurisHandler.fetchProjurisInfo(this.#projurisHandler.endPoints.bancos)
         ]
 
         const googleSheetResponses = await Promise.all(googleSheetsFetchPromises)
@@ -84,7 +89,7 @@ export default class Drafter {
             tiposParticipacaoList, varasList, tiposVaraList, tiposJusticaList,
             areasList, fasesList, gtsList, camposDinamicosList,
             allResponsaveisList, tiposTarefaList, bancosList
-        ] = await Promise.all(projurisResponses.map(response => extractOptionsArray(response)))
+        ] = await Promise.all(projurisResponses.map(response => this.#projurisHandler.extractOptionsArray(response)))
 
         this.#sheetsLists = {
             clientsList, allClientsProvisionsList, allClientsFaturamentosList
@@ -149,7 +154,7 @@ export default class Drafter {
         projurisParte.habilitado = true
         if (parte.tipoDeParte === tiposParte.advogado) projurisParte.profissao = { chave: 616, valor: "Advogado" }
         projurisParte.tipoEnvolvido = projurisTipoEnvolvidoType[parte.tipoDeParte]
-        projurisParte.tipoParticipacao = filterProjurisOptions(this.#projurisLists.tiposParticipacaoList, { ...Drafter.filterTemplate, val: parte.tipoDeParte, flattenOptions: true })[0]
+        projurisParte.tipoParticipacao = this.#projurisHandler.filterProjurisOptions(this.#projurisLists.tiposParticipacaoList, { ...Drafter.filterTemplate, val: parte.tipoDeParte, flattenOptions: true })[0]
         projurisParte.flagPrincipal = (index === 0)
         projurisParte.flagCompleto = true
         return projurisParte
@@ -170,7 +175,7 @@ export default class Drafter {
         projurisParte.habilitado = true
         projurisParte.tipoEnvolvido = projurisTipoEnvolvidoType.juiz
         const filter = { ...Drafter.filterTemplate, val: "magistrado", flattenOptions: true }
-        projurisParte.tipoParticipacao = filterProjurisOptions(this.#projurisLists.tiposParticipacaoList, filter)[0]
+        projurisParte.tipoParticipacao = this.#projurisHandler.filterProjurisOptions(this.#projurisLists.tiposParticipacaoList, filter)[0]
         projurisParte.flagPrincipal = false
         projurisParte.flagCompleto = true
         projurisParte.classificacao = [
@@ -217,8 +222,10 @@ export default class Drafter {
     }
     
     async #getAdaptedProcesso(clientRole) {
+        const { fetchGoogleSheetRowsMatchingExpression } = useGoogleSheets()
+        const { getGtCrew } = useProjurisConnector()
         const getProjurisItem = (itemType, list, filter) => {
-            const matchingItems = filterProjurisOptions(list, filter)
+            const matchingItems = this.#projurisHandler.filterProjurisOptions(list, filter)
             if (!matchingItems) {
                 const errorMsg = generateErrMsg.noMatchInProjuris(filter.val, itemType)
                 projurisProcesso.errorMsgs.push(errorMsg)
@@ -253,7 +260,7 @@ export default class Drafter {
         }
         projurisProcesso.tipoInstancia = juizoInfo.tipoInstancia
         const dependentFetchesResponses = await Promise.all(this.#makeProjurisProcessoFetches(codTipoJustica, juizoInfo.comarca))
-        const [ instanciasCnjList, orgaosJudiciaisList ] = await Promise.all(dependentFetchesResponses.map(response => extractOptionsArray(response)))
+        const [ instanciasCnjList, orgaosJudiciaisList ] = await Promise.all(dependentFetchesResponses.map(response => this.#projurisHandler.extractOptionsArray(response)))
         projurisProcesso.vara = getProjurisItem("vara", this.#projurisLists.varasList, { ...Drafter.filterTemplate, val: juizoInfo.vara })
         projurisProcesso.tipoVara = getProjurisItem("tipoVara", this.#projurisLists.tiposVaraList, { ...Drafter.filterTemplate, val: juizoInfo.tipoVara })
         projurisProcesso.tipoJustica = getProjurisItem("tipoJustica", this.#projurisLists.tiposJusticaList, { key: "chave", operator: operators.insensitiveStrictEquality, val: codTipoJustica })
@@ -262,7 +269,7 @@ export default class Drafter {
         projurisProcesso.instanciaCnj = getProjurisItem("instanciaCnj", instanciasCnjList, { ...Drafter.filterTemplate, val: juizoInfo.instanciaCnj })
         projurisProcesso.orgaoJudicial = getProjurisItem("orgaoJudicial", orgaosJudiciaisList, { ...Drafter.filterTemplate, val: juizoInfo.orgaoJudicial })
         projurisProcesso.complementoVara = juizoInfo.comarca
-        const gts = filterProjurisOptions(this.#projurisLists.gtsList, { ...Drafter.filterTemplate, val: clientRole?.gt })
+        const gts = this.#projurisHandler.filterProjurisOptions(this.#projurisLists.gtsList, { ...Drafter.filterTemplate, val: clientRole?.gt })
         projurisProcesso.gruposDeTrabalho = gts ? gts[0] : undefined
         try {
             const gtCrew = await getGtCrew(clientRole?.gt, this.#projurisLists.allResponsaveisList, this.#googleToken)
@@ -282,15 +289,15 @@ export default class Drafter {
     }
     
     #makeProjurisProcessoFetches(codTipoJustica, comarca) {
-        const endPointInstanciaCnj = endPoints.instanciasCnj + codTipoJustica
+        const endPointInstanciaCnj = this.#projurisHandler.endPoints.instanciasCnj + codTipoJustica
         const maxProjurisEntriesPerPage = 30
-        const endPointOrgaoJudicial = endPoints.orgaoJudicial + '(nomeOrgao:' + comarca
+        const endPointOrgaoJudicial = this.#projurisHandler.endPoints.orgaoJudicial + '(nomeOrgao:' + comarca
             + '$processoJusticaCodigo:' + codTipoJustica
             + '$pagina:0$quantidadeRegistros:' + maxProjurisEntriesPerPage + ')'
         
         return [
-            fetchProjurisInfo(endPointInstanciaCnj),
-            fetchProjurisInfo(endPointOrgaoJudicial),
+            this.#projurisHandler.fetchProjurisInfo(endPointInstanciaCnj),
+            this.#projurisHandler.fetchProjurisInfo(endPointOrgaoJudicial),
         ]
     }
     
@@ -409,9 +416,9 @@ export default class Drafter {
     
     async #getAllTiposAndamento() {
         const maxProjurisEntriesPerPage = 100
-        const endPointTipoAndamento = endPoints.tiposAndamento + 'quan-registros=' + maxProjurisEntriesPerPage
-        const response = await fetchProjurisInfo(endPointTipoAndamento)
-        const options = await extractOptionsArray(response)
+        const endPointTipoAndamento = this.#projurisHandler.endPoints.tiposAndamento + 'quan-registros=' + maxProjurisEntriesPerPage
+        const response = await this.#projurisHandler.fetchProjurisInfo(endPointTipoAndamento)
+        const options = await this.#projurisHandler.extractOptionsArray(response)
         return options
     }
     
@@ -449,7 +456,7 @@ export default class Drafter {
     }
     
     async #getStandardPedidosByClientAndCausaPedir(clientName, dataDistribuicao, causasDePedir = []) {
-        const clientFilteredProvisionsList = filterProjurisOptions(this.#sheetsLists.allClientsProvisionsList, { key: 0, operator: operators.insensitiveStrictEquality, val: clientName })
+        const clientFilteredProvisionsList = this.#projurisHandler.filterProjurisOptions(this.#sheetsLists.allClientsProvisionsList, { key: 0, operator: operators.insensitiveStrictEquality, val: clientName })
         const clientProvisionsByCausasDePedir = this.#filterClientsProvisionsByCausasDePedir(clientFilteredProvisionsList, causasDePedir)
         return clientProvisionsByCausasDePedir.map(pedidoProvision => {
             const projurisPedido = new ProjurisPedidoDataStructure()
@@ -464,9 +471,9 @@ export default class Drafter {
     }
     
     async #fetchRelevantPedidosProjurisData(pedidos) {
-        const promises = pedidos.map(pedido => fetchProjurisInfo(endPoints.pedidos + pedido.nomePedido))
+        const promises = pedidos.map(pedido => this.#projurisHandler.fetchProjurisInfo(this.#projurisHandler.endPoints.pedidos + pedido.nomePedido))
         const responses = await Promise.all(promises)
-        return await Promise.all(responses.map(async response => await extractOptionsArray(response)))
+        return await Promise.all(responses.map(async response => await this.#projurisHandler.extractOptionsArray(response)))
     }
     
     #pushNomeAndCodigoIntoPedidos(projurisPedidos, list) {
@@ -502,14 +509,14 @@ export default class Drafter {
     }
 
     async #getStandardFaturamentosByClient(clientName) {
-        const clientFilteredFaturamentosList = filterProjurisOptions(this.#sheetsLists.allClientsFaturamentosList, { key: 0, operator: operators.insensitiveStrictEquality, val: clientName })
+        const clientFilteredFaturamentosList = this.#projurisHandler.filterProjurisOptions(this.#sheetsLists.allClientsFaturamentosList, { key: 0, operator: operators.insensitiveStrictEquality, val: clientName })
         const clientFaturamentosAfterConditions = this.#filterClientsFaturamentosByConditions(clientFilteredFaturamentosList)
         return clientFaturamentosAfterConditions.map(faturamento => {
             const [ , descricaoRawStr, , valorRawStr, vencimentoCalculationUnitsRawStr, unitsToVencimentoRawStr, bancoRawStr ] = faturamento
             const descricao = descricaoRawStr.trim()
             const valor = parseFloat(valorRawStr)
             const vencimento = this.#calculateVencimento(vencimentoCalculationUnitsRawStr, unitsToVencimentoRawStr)
-            const banco = filterProjurisOptions(this.#projurisLists.bancosFormattedList, { key: "valor", operator: operators.insensitiveStrictEquality, val: bancoRawStr })[0]
+            const banco = this.#projurisHandler.filterProjurisOptions(this.#projurisLists.bancosFormattedList, { key: "valor", operator: operators.insensitiveStrictEquality, val: bancoRawStr })[0]
             return new ProjurisFaturamentoDataStructure(clientName, valor, new Date(), vencimento, banco, descricao)
         })
     }
