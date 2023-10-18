@@ -277,8 +277,8 @@ export default class Drafter {
         return projurisProcesso
     }
     
-    #getCodigoTipoJustica(numeroProcesso) {
-        return REGEX_CNJ_NUMBER.exec(numeroProcesso)[2]
+    #getCodigoTipoJustica(numeroDoProcesso) {
+        return REGEX_CNJ_NUMBER.exec(numeroDoProcesso)[2]
     }
     
     #makeProjurisProcessoFetches(codTipoJustica, comarca) {

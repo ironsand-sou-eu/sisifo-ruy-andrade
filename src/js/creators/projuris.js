@@ -7,10 +7,10 @@ let msgSetter
 async function createAll({ projurisProcesso, projurisPartes, projurisTarefas, projurisAndamentos, projurisPedidos }, resultSetter) {
     msgSetter = resultSetter
     msgSetter.setSingleProcessingMsg("Verificando se o processo já está cadastrado..." )
-    const numeroProcesso = projurisProcesso.processoNumeroWs[0].numeroDoProcesso
-    const codigoProcessoIfExists = await checkIfProcessoAlreadyExists(numeroProcesso)
+    const numeroDoProcesso = projurisProcesso.processoNumeroWs[0].numeroDoProcesso
+    const codigoProcessoIfExists = await checkIfProcessoAlreadyExists(numeroDoProcesso)
     if (codigoProcessoIfExists) {
-        throw new ProcessoAlreadyExistsException(codigoProcessoIfExists, numeroProcesso, msgSetter)
+        throw new ProcessoAlreadyExistsException(codigoProcessoIfExists, numeroDoProcesso, msgSetter)
     }
     const envolvidos = await ensurePeopleExists(projurisPartes)
     const codigoProcesso = await createProcesso(projurisProcesso)
@@ -21,8 +21,8 @@ async function createAll({ projurisProcesso, projurisPartes, projurisTarefas, pr
     msgSetter.clear({ type: "processing" })
 }
 
-async function checkIfProcessoAlreadyExists(numeroProcesso) {
-    const response = await fetchProjurisInfo(endPoints.buscarProcessoPorNumero + numeroProcesso)
+async function checkIfProcessoAlreadyExists(numeroDoProcesso) {
+    const response = await fetchProjurisInfo(endPoints.buscarProcessoPorNumero + numeroDoProcesso)
     const result = await extractOptionsArray(response)
     if (result.length > 0) return result[0].codigoProcesso
     return false
@@ -134,9 +134,9 @@ async function createProcesso(processo) {
         return null
     }
     const codigoProcesso = responseJson.codigoProcesso
-    const numeroProcesso = processo.processoNumeroWs[0].numeroDoProcesso
+    const numeroDoProcesso = processo.processoNumeroWs[0].numeroDoProcesso
     const msg = `Processo <a href=https://app.projurisadv.com.br/casos/`
-        + `processo/visao-completa/${codigoProcesso} target="_blank">${numeroProcesso}</a> `
+        + `processo/visao-completa/${codigoProcesso} target="_blank">${numeroDoProcesso}</a> `
         + `cadastrado com sucesso.`
     
     msgSetter.clear({ type: "processing" })

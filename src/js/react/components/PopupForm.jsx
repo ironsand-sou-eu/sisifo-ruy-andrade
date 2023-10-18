@@ -25,9 +25,9 @@ function PopupForm({ onSubmit, data, updateData }) {
             <div className="form-group">
                 <Text
                     type="text"
-                    name="numeroProcesso"
+                    name="numeroDoProcesso"
                     label="Número"
-                    value={data?.numeroProcesso}
+                    value={data?.numeroDoProcesso}
                     placeholder="Número do processo"
                     isDisabled
                 />
