@@ -5,6 +5,7 @@ import Select from "./Select";
 import Checkbox from "./Checkbox";
 import Textarea from "./Textarea";
 import PedidosBox from "./PedidosBox";
+import FaturamentosBox from "./FaturamentosBox"
 import Button from "./Button";
 import { endPoints } from "../../connectors/projuris";
 import useValidator from "../hooks/useValidator";
@@ -29,7 +30,7 @@ function PopupForm({ onSubmit, data, updateData }) {
                     value={data?.numeroProcesso}
                     placeholder="Número do processo"
                     isDisabled
-                    />
+                />
                 <Text
                     type="text"
                     name="pastaCliente"
@@ -117,7 +118,7 @@ function PopupForm({ onSubmit, data, updateData }) {
                     label="Citação"
                     value={data?.dataCitacao}
                     placeholder="Data da citação do cliente"
-                    onChange={event => updateData(event.target.value, event.target.name)}
+                    onChange={({target: {value, name}}) => updateData(value, name)}
                 />
                 <Text
                     type="date"
@@ -186,6 +187,14 @@ function PopupForm({ onSubmit, data, updateData }) {
                 <legend className="sisifo-v-label">Pedidos e provisionamento</legend>
                 <PedidosBox
                     pedidos={data?.pedidos}
+                    onChange={updateData}
+                />
+            </fieldset>
+            <fieldset className="form-group">
+                <legend className="sisifo-v-label">Lançamentos financeiros e Faturamento</legend>
+                <FaturamentosBox
+                    faturamentos={data?.faturamentos}
+                    bancosList={data?.bancosList}
                     onChange={updateData}
                 />
             </fieldset>
