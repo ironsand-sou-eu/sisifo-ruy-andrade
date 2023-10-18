@@ -6,6 +6,7 @@ import PopupForm from "./components/PopupForm"
 import finalizeProcessoInfo from "../adapters/confirmation-projuris.js"
 import useMsgSetter from "./hooks/useMsgSetter"
 import useErrorHandler from "./hooks/useErrorHandler"
+import useLocation from "./hooks/useLocation"
 
 export const LoadingContext = createContext();
 export const MsgSetterContext = createContext();    
@@ -17,6 +18,7 @@ export default function App() {
     const [ loading, setLoading ] = useState({ scrapping: true, creating: false })
     const { msgSetter } = useMsgSetter(result, setResult);
     const { adaptedInfoHasErrors } = useErrorHandler(processoDraftedData, msgSetter)
+    const { formatDateToInputString } = useLocation()
     useLoader(processoDraftedData, setProcessoDraftedData)
 
     function updateFormData(newData, changedInput) {
@@ -50,8 +52,8 @@ export default function App() {
             numeroDoProcesso, area, tipoJustica, vara, tipoVara, assuntoCnj, fase, responsaveisList, gruposDeTrabalho,
             responsaveis, segredoJustica, partesRequerentes, partesRequeridas, pedidos, faturamentos,
             assunto: null,
-            dataCitacao: new Date().toISOString().substring(0, 10),
-            dataRecebimento: new Date().toISOString().substring(0, 10),
+            dataCitacao:  formatDateToInputString(new Date()),
+            dataRecebimento: formatDateToInputString(new Date()),
             bancosList
         }
         setFormData(data)

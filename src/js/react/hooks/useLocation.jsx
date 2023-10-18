@@ -12,11 +12,7 @@ export default function useLocation() {
 
     function formatDateToInputString(date) {
         if (!date) return null
-        date = new Date(date)
-        const day = `${date.getDate()}`.padStart(2, "0")
-        const month = `${date.getMonth() + 1}`.padStart(2, "0")
-        const year = `${date.getFullYear()}`
-        return `${year}-${month}-${day}`
+        return new Date(date).toISOString().substring(0, 10)
     }
 
     return { formatCurrencyToPtBr, formatStringToNumber, formatDateToInputString }
