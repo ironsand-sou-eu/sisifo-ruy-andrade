@@ -9,6 +9,7 @@ function OptionsApp() {
     const gtsUrl = gSheetsUrls.frontendBase + gSheetsUrls.gtsSheetId
     const pedidosProvisionamentosUrl = gSheetsUrls.frontendBase + gSheetsUrls.pedidosProvisionamentosSheetId
     const tarefasUrl = gSheetsUrls.frontendBase + gSheetsUrls.tarefasSheetId
+    const lancamentosFinanceirosUrl = gSheetsUrls.frontendBase + gSheetsUrls.faturamentosSheetId
     return (
         <div className="form-group">
             <Link
@@ -33,6 +34,10 @@ function OptionsApp() {
             />
             <Link
                 label="Lista de tarefas"
+                url={tarefasUrl}
+            />
+            <Link
+                label="Lista de lançamentos financeiros"
                 url={tarefasUrl}
             />
         </div>
