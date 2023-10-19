@@ -44,7 +44,6 @@ export default function FaturamentosBox({ faturamentos, bancosList, onChange }) 
                         bancosList={bancosList}
                         onChange={changeParams => {
                             const faturamentos = changingFunctions[changeParams.type](changeParams)
-                            console.log(JSON.stringify(faturamentos[0]))
                             onChange(faturamentos, "faturamentos")
                         }}
                     />

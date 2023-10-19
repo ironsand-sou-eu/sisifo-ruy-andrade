@@ -1,5 +1,5 @@
-import generateErrMsg from "../../exceptions/error-message-generator"
-import { gSheetsUrls } from "../../envVars"
+import generateErrMsg from "../../../exceptions/error-message-generator"
+import { gSheetsUrls } from "../../../envVars"
 
 export default function useGoogleSheets() {
     async function fetchGoogleToken() {

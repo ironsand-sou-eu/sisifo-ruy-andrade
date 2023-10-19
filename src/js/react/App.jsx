@@ -19,7 +19,7 @@ export default function App() {
     const { msgSetter } = useMsgSetter(result, setResult);
     const { adaptedInfoHasErrors } = useErrorHandler(processoDraftedData, msgSetter)
     const { formatDateToInputString } = useLocation()
-    const { finalizeProcessoInfo } = usePostConfirmationAdapter(processoDraftedData, setResult)
+    const { finalizeProcessoInfo } = usePostConfirmationAdapter(processoDraftedData, msgSetter)
     useLoader(processoDraftedData, setProcessoDraftedData)
 
     function updateFormData(newData, changedInput) {
@@ -31,7 +31,7 @@ export default function App() {
     function onSubmit(e) {
         e.preventDefault()
         setLoading({ scrapping: false, creating: true })
-        // finalizeProcessoInfo(processoDraftedData, formData, msgSetter)
+        finalizeProcessoInfo(formData)
     }
 
     useEffect(() => {
