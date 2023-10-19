@@ -207,7 +207,7 @@ export default function useProjurisCreator(msgSetter) {
         const params = {
             entitiesArray: pedidos,
             endpoint: endPoints.criarPedido + codigoProcesso,
-            checkSuccessfulCreation: responseJson => Boolean(responseJson?.chave),
+            checkSuccessfulCreation:  () => true,
             getName: pedido => pedido.nomePedido,
             msgs: {
                 update: "Criando pedidos",
@@ -220,20 +220,20 @@ export default function useProjurisCreator(msgSetter) {
     }
 
     async function adjustAndAttachFaturamentosToProcesso(faturamentos, envolvidos) {
-        const client = envolvidos.filter(parte => parte.flagCliente === true)[0]
+        const client = envolvidos.filter(parte => parte.flagCliente === true)[0].pessoaEnvolvido
         faturamentos.forEach(faturamento => {
             faturamento.responsavelPagamento = client
-            solicitacaoRecebimentoPagtoWs.forEach(solicitacao => solicitacao.pessoa = client)
+            faturamento.solicitacaoRecebimentoPagtoWs.forEach(solicitacao => solicitacao.pessoa = client)
         })
         const params = {
             entitiesArray: faturamentos,
             endpoint: endPoints.criarLancamentoFinanceiro(codigoProcesso),
-            checkSuccessfulCreation: responseJson => Boolean(responseJson?.chave),
-            getName: faturamento => faturamento.receitaDespesaItemWs.descricao,
+            checkSuccessfulCreation: () => true,
+            getName: faturamento => faturamento.receitaDespesaItemWs[0].descricao,
             msgs: {
                 update: "Criando lançamentos financeiros",
                 success: "lançamentos financeiros criados no processo.",
-                failStart: "Erro ao criar o lançamentos financeiro",
+                failStart: "Erro ao criar o lançamento financeiro",
                 failEnd: "no processo. Por favor, crie o registro manualmente."
             }
         }
@@ -258,7 +258,7 @@ export default function useProjurisCreator(msgSetter) {
             const requestSuccessful = (response.status && response.status >=200 && response.status < 300 )
             const createdSuccessful = checkSuccessfulCreation(await response.json())
             if (!(requestSuccessful && createdSuccessful)) {
-                const msg = msgs.failStart + " " + getName(entitiesArray[index]) + " "  + msg.failEnd
+                const msg = msgs.failStart + " " + getName(entitiesArray[index]) + " "  + msgs.failEnd
                 msgSetter.addMsg({ type: "fail", msg })
                 return
             }
