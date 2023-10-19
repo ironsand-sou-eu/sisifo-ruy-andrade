@@ -23,6 +23,7 @@ export default function FaturamentosBox({ faturamentos, bancosList, onChange }) 
     return (
         <div className="col-sm-12">
             <Add
+                label="Adicionar lançamento financeiro"
                 onClick={() => {
                     const faturamentos = changingFunctions.add()
                     onChange(faturamentos, {name: "faturamentos"})

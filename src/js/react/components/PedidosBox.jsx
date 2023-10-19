@@ -21,6 +21,7 @@ export default function PedidosBox({ pedidos, onChange }) {
     return (
         <div className="col-sm-12">
             <Add
+                label="Adicionar pedido"
                 onClick={() => {
                     const pedidos = changingFunctions.add()
                     onChange(pedidos, {name: "pedidos"})
