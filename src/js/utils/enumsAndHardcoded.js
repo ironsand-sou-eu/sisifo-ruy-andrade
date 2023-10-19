@@ -1,13 +1,15 @@
 export const hardcoded = Object.freeze({
     tipoResponsavelPagamento : "CLIENTE",
     tipoLancamentoFinanceiro : "RECEITA",
-    pagamentoTipo: "TRANSFERENCIA",
+    formaPagamento: "TRANSFERENCIA",
     numeroParcelas: 1,
-    pessoa: {
-        RuyAndrade: {
-            chave: 37221,
-            valor: "Ruy Andrade Advocacia Empresarial"
-        }
+    unidadeOrganizacional: {
+        chave: 37221,
+        valor: "Ruy Andrade Advocacia Empresarial"
+    },
+    favorecido: {
+        chave: 3326088,
+        valor: "RUY ANDRADE ADVOCACIA EMPRESARIAL"
     },
     planoConta: {
         chave: 357418,

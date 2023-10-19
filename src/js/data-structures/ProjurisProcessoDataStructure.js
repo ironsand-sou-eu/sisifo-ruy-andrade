@@ -3,8 +3,8 @@ import { hardcoded } from "../utils/enumsAndHardcoded"
 export default class ProjurisProcessoDataStructure
 {
     constructor(situacaoProcesso = { chave: 1, valor: "Ativo" },
-        unidadeOrganizacionalOrigem = hardcoded.pessoa.RuyAndrade,
-        unidadeOrganizacionalAtual = hardcoded.pessoa.RuyAndrade,
+        unidadeOrganizacionalOrigem = hardcoded.unidadeOrganizacional,
+        unidadeOrganizacionalAtual = hardcoded.unidadeOrganizacional,
         gruposDeTrabalho, responsaveis, assunto, valorAcao, descricao, tipoProcesso = "J",
         tipoJustica, vara, tipoVara, complementoVara, dataDistribuicao, dataCitacao,
         area, fase, tipoInstancia = "PRIMEIRA_INSTANCIA",

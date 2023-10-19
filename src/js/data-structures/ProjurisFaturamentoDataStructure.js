@@ -4,19 +4,18 @@ export default class ProjurisFaturamentoDataStructure
 {
     constructor(
         responsavelPagamento, valorDocumento, data, dataVencimento, conta, descricao,
-        unidadeOrganizacional = hardcoded.pessoa.RuyAndrade, planoConta = hardcoded.planoConta,
-        tipoResponsavelPagamento = hardcoded.tipoResponsavelPagamento, tipoLancamentoFinanceiro = hardcoded.tipoLancamentoFinanceiro,
-        tipoDocumento = hardcoded.tiposDocumento.notaFiscal, condicaoPagamento = hardcoded.condicoesPagamento.aVista,
-        numeroTotalParcelas = hardcoded.numeroParcelas, pagamentoTipo = hardcoded.pagamentoTipo,
-        tipoParcela = hardcoded.tipoParcela
+        unidadeOrganizacional = hardcoded.unidadeOrganizacional, favorecido = hardcoded.favorecido,
+        planoConta = hardcoded.planoConta, tipoResponsavelPagamento = hardcoded.tipoResponsavelPagamento,
+        tipoLancamentoFinanceiro = hardcoded.tipoLancamentoFinanceiro, tipoDocumento = hardcoded.tiposDocumento.notaFiscal,
+        condicaoPagamento = hardcoded.condicoesPagamento.aVista, numeroTotalParcelas = hardcoded.numeroParcelas,
+        formaPagamento = hardcoded.formaPagamento, tipoParcela = hardcoded.tipoParcela
     ) {
         data = data ? new Date(data.getTime()) : undefined
         dataVencimento = dataVencimento ? new Date(dataVencimento.getTime()) : undefined
         Object.assign(this, {
             unidadeOrganizacional, planoConta, tipoResponsavelPagamento,
             tipoLancamentoFinanceiro, responsavelPagamento, valorDocumento,
-            tipoDocumento, condicaoPagamento, numeroTotalParcelas, data, dataVencimento,
-            favorecido: unidadeOrganizacional,
+            tipoDocumento, numeroTotalParcelas, data, dataVencimento, favorecido,
             receitaDespesaItemWs: [
                 {
                     descricao,
@@ -27,7 +26,6 @@ export default class ProjurisFaturamentoDataStructure
             pagamentoTransferenciaWs: [{
                 valorPagamento: valorDocumento,
                 dataVencimento,
-                pagamentoTipo,
                 conta,
                 tipoParcela,
                 dataEmissao: data
@@ -36,6 +34,8 @@ export default class ProjurisFaturamentoDataStructure
                 pessoa: responsavelPagamento,
                 valorSolicitacao: valorDocumento,
                 dataVencimento,
+                condicaoPagamento,
+                formaPagamento,
                 tipoSolicitacaoRecebimentoPagto: tipoLancamentoFinanceiro
             }]
         })
