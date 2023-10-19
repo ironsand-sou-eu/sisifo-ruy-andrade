@@ -500,34 +500,35 @@ export default class Drafter {
         }
     }
 
-    async #getAdaptedFaturamentos(clientName, audienciaFutura) {
+    async #getAdaptedFaturamentos(clientName) {
         const projurisFaturamentos = { values: [], errorMsgs: [] }
         if (clientName) {
-            projurisFaturamentos.values = await this.#getStandardFaturamentosByClient(clientName, audienciaFutura)
+            projurisFaturamentos.values = await this.#getStandardFaturamentosByClient(clientName)
         }
         return projurisFaturamentos
     }
 
     async #getStandardFaturamentosByClient(clientName) {
-        const clientFilteredFaturamentosList = this.#projurisHandler.filterProjurisOptions(this.#sheetsLists.allClientsFaturamentosList, { key: 0, operator: operators.insensitiveStrictEquality, val: clientName })
+        const clientFilteredFaturamentosList = this.#projurisHandler.filterProjurisOptions(this.#sheetsLists.allClientsFaturamentosList,
+            { key: 0, operator: operators.insensitiveStrictEquality, val: clientName })
         const clientFaturamentosAfterConditions = this.#filterClientsFaturamentosByConditions(clientFilteredFaturamentosList)
         return clientFaturamentosAfterConditions.map(faturamento => {
-            const [ , descricaoRawStr, , valorRawStr, vencimentoCalculationUnitsRawStr, unitsToVencimentoRawStr, bancoRawStr ] = faturamento
+            const [ , descricaoRawStr, condicao, valorRawStr, vencimentoCalculationUnitsRawStr, unitsToVencimentoRawStr, bancoRawStr ] = faturamento
             const descricao = descricaoRawStr.trim()
             const valor = parseFloat(valorRawStr)
-            const vencimento = this.#calculateVencimento(vencimentoCalculationUnitsRawStr, unitsToVencimentoRawStr)
+            const vencimento = this.#calculateVencimento(vencimentoCalculationUnitsRawStr, unitsToVencimentoRawStr, condicao)
             const banco = this.#projurisHandler.filterProjurisOptions(this.#projurisLists.bancosFormattedList, { key: "valor", operator: operators.insensitiveStrictEquality, val: bancoRawStr })[0]
             return new ProjurisFaturamentoDataStructure(clientName, valor, new Date(), vencimento, banco, descricao)
         })
     }
 
-    #calculateVencimento(calculationUnit, unitsToVencimento) {
+    #calculateVencimento(calculationUnit, unitsToVencimento, condicao) {
+        const baseDate = (condicao.toLowerCase() === "audiência") ? new Date(this.#processoInfo.audienciaFutura.data) : new Date()
         const vencimentoCalc = {
             meses: monthsToAdd => {
                 const dueDay = 27
-                const today = new Date()
-                const month = today.getMonth()
-                const year = today.getFullYear()
+                const month = baseDate.getMonth()
+                const year = baseDate.getFullYear()
                 const decemberFromIndexZero = 11
                 
                 let yearsToAdd = Math.floor(monthsToAdd / 12)
@@ -540,7 +541,7 @@ export default class Drafter {
                 const dueYear = year + yearsToAdd
                 return new Date(dueYear, dueMonth, dueDay)
             },
-            dias: days => new Date(new Date().getTime() + (parseInt(days) * 24 * 60 * 60 * 1000))
+            dias: days => new Date(baseDate.getTime() + (parseInt(days) * 24 * 60 * 60 * 1000))
         }
         return vencimentoCalc[calculationUnit.toLowerCase()](unitsToVencimento)
     }
@@ -548,7 +549,7 @@ export default class Drafter {
     #filterClientsFaturamentosByConditions(list) {
         return list.filter(faturamento => {
             const condicao = faturamento[2]
-            if (condicao.toLowerCase() === "audiencia" || condicao.toLowerCase() === "audiência" && !this.#processoInfo.audienciaFutura) return false
+            if (condicao.toLowerCase() === "audiência" && !this.#processoInfo.audienciaFutura) return false
             return true
         })
     }
