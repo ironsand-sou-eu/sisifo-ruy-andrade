@@ -13,20 +13,8 @@ export default function usePostConfirmationAdapter(processoDraftedData, msgSette
 
     async function finalizeProcessoInfo(formData) {
         const { projurisProcessoMerged, projurisPartesMerged, projurisAndamentosMerged, projurisPedidosMerged,
-            projurisFaturamentosMerged, tarefasParams } = await mergeFormData(formData)
-        try {
-            const gtCrew = await getGtCrew(projurisProcessoMerged.gruposDeTrabalho.valor, tarefasParams.allResponsaveisList)
-            gtCrew.gt = projurisProcessoMerged.gruposDeTrabalho
-            gtCrew.advs = projurisProcessoMerged.responsaveis
-            tarefasParams.gtCrew = gtCrew
-        } catch(e) {
-            throw new Exception(e, msgSetter)
-        }
-        tarefasParams.clientsPoloProcessual = identifyClientsPolo(projurisPartesMerged)
-        const projurisTarefas = await getAdaptedTarefas(tarefasParams)
-        if (hasErrors([projurisTarefas])) throw new Exception(projurisTarefas.errorMsgs, msgSetter)
-        const projurisTarefasMerged = projurisTarefas.values
-    
+            projurisFaturamentosMerged, tarefasParamsMerged } = await mergeFormData(formData)
+        const projurisTarefasMerged = await getAdaptedTarefas(tarefasParamsMerged)
         finalAdaptProcesso(projurisProcessoMerged)
         finalAdaptPartes(projurisPartesMerged)
         finalAdaptAndamentos(projurisAndamentosMerged, projurisProcessoMerged.responsaveis)
@@ -49,10 +37,9 @@ export default function usePostConfirmationAdapter(processoDraftedData, msgSette
         const { projurisProcesso, projurisPartes, projurisAndamentos, tarefasParams } = processoDraftedData
         const {
             numeroDoProcesso, assuntoCnj, assunto, area, tipoJustica, vara, tipoVara, dataCitacao,
-            dataRecebimento, fase, gruposDeTrabalho, responsaveis, segredoJustica, senhaProcesso,
-            pastaCliente, descricao, partesRequerentes, partesRequeridas, pedidos, faturamentos
+            dataRecebimento, fase, gruposDeTrabalho, responsaveis, segredoJustica, senhaProcesso, pastaCliente,
+            descricao, faturamentos, partesRequerentes, partesRequeridas, pedidos: projurisPedidosMerged
         } = formData
-
         const projurisProcessoMerge = {
             numeroProcesso: [{
                 tipoNumeracao: "PADRAO_CNJ",
@@ -63,7 +50,7 @@ export default function usePostConfirmationAdapter(processoDraftedData, msgSette
             fase, gruposDeTrabalho, responsaveis, segredoJustica, senhaProcesso, pastaCliente, descricao
         }
         const projurisPartesMerge = { partesRequerentes, partesRequeridas }
-
+        
         const projurisProcessoMerged = { ...projurisProcesso, ...projurisProcessoMerge }
         const projurisPartesMerged = { ...projurisPartes, ...projurisPartesMerge }
         const allprojurisPartes = [
@@ -72,13 +59,28 @@ export default function usePostConfirmationAdapter(processoDraftedData, msgSette
             ...projurisPartesMerged.terceiros,
             projurisPartesMerged.magistrado
         ]
+        const tarefasParamsMerge = await getTarefasParamsMerge(tarefasParams.allResponsaveisList, projurisProcessoMerged, allprojurisPartes)
+        const tarefasParamsMerged = { ...tarefasParams, ...tarefasParamsMerge }
         return {
             projurisProcessoMerged,
+            projurisPedidosMerged,
+            tarefasParamsMerged,
             projurisPartesMerged: allprojurisPartes,
             projurisAndamentosMerged: projurisAndamentos,
-            projurisPedidosMerged: pedidos,
-            projurisFaturamentosMerged: faturamentos,
-            tarefasParams: tarefasParams
+            projurisFaturamentosMerged: faturamentos
+        }
+    }
+
+    async function getTarefasParamsMerge(allResponsaveisList, projurisProcessoMerged, projurisPartesMerged) {
+        const { gruposDeTrabalho, responsaveis } = projurisProcessoMerged
+        try {
+            const clientsPoloProcessual = identifyClientsPolo(projurisPartesMerged)
+            const gtCrew = await getGtCrew(gruposDeTrabalho.valor, allResponsaveisList)
+            gtCrew.gt = gruposDeTrabalho
+            gtCrew.advs = responsaveis
+            return { clientsPoloProcessual, gtCrew }
+        } catch(e) {
+            throw new Exception(e, msgSetter)
         }
     }
     
@@ -101,14 +103,15 @@ export default function usePostConfirmationAdapter(processoDraftedData, msgSette
         projurisAndamentos.forEach(projurisAndamento => projurisAndamento.responsaveis = responsaveis)
     }
     
-    async function getAdaptedTarefas(tarefasParams) {
-        const { gtCrew, clientsPoloProcessual } = tarefasParams
+    async function getAdaptedTarefas(tarefasParamsMerged) {
+        const { gtCrew, clientsPoloProcessual } = tarefasParamsMerged
         const googleTarefasInfo = await getGoogleTarefasInfo(gtCrew.gt.valor, clientsPoloProcessual)
         const projurisTarefas = { values: [], errorMsgs: [] }
         projurisTarefas.values = googleTarefasInfo
-            .map(tarefaGoogleInfo => adaptGoogleInfoTarefaToProjuris(tarefaGoogleInfo, projurisTarefas, tarefasParams))
+            .map(tarefaGoogleInfo => adaptGoogleInfoTarefaToProjuris(tarefaGoogleInfo, projurisTarefas, tarefasParamsMerged))
             .filter(projurisTarefa => projurisTarefa != undefined)
-        return projurisTarefas
+        if (hasErrors([projurisTarefas])) throw new Exception(projurisTarefas.errorMsgs, msgSetter)
+        return projurisTarefas.values
     }
     
     async function getGoogleTarefasInfo(gtName, clientsPoloProcessual) {

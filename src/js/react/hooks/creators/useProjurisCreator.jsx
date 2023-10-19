@@ -1,5 +1,5 @@
-import ProjurisParteDataStructure from "../../data-structures/ProjurisPessoaDataStructure";
-import ProcessoAlreadyExistsException from "../../exceptions/ProcessoAlreadyExistsException";
+import ProjurisParteDataStructure from "../../../data-structures/ProjurisPessoaDataStructure";
+import ProcessoAlreadyExistsException from "../../../exceptions/ProcessoAlreadyExistsException";
 import useProjurisConnector from "../connectors/useProjurisConnector";
 
 export default function useProjurisCreator(msgSetter) {
@@ -7,28 +7,22 @@ export default function useProjurisCreator(msgSetter) {
     let codigoProcesso
 
     async function createAll({ projurisProcesso, projurisPartes, projurisTarefas, projurisAndamentos, projurisPedidos, projurisFaturamentos }) {
-        msgSetter.setSingleProcessingMsg("Verificando se o processo já está cadastrado..." )
-        const numeroDoProcesso = projurisProcesso.processoNumeroWs[0].numeroDoProcesso
-        const codigoProcessoIfExists = await checkIfProcessoAlreadyExists(numeroDoProcesso)
-        if (codigoProcessoIfExists) {
-            throw new ProcessoAlreadyExistsException(codigoProcessoIfExists, numeroDoProcesso, msgSetter)
-        }
+        await checkIfProcessoAlreadyExists(projurisProcesso.processoNumeroWs[0].numeroDoProcesso)
         const envolvidos = await ensurePeopleExists(projurisPartes)
         codigoProcesso = await createProcesso(projurisProcesso)
         await attachPessoasToProcesso(envolvidos)
         await adjustAndAttachTarefasToProcesso(projurisTarefas)
         await adjustAndAttachAndamentosToProcesso(projurisAndamentos)
         await attachPedidosToProcesso(projurisPedidos)
-        //Descobrir quem é o cliente para passar o objeto pessoa para Faturamentos
-        await adjustAndAttachFaturamentosToProcesso(projurisFaturamentos)
+        await adjustAndAttachFaturamentosToProcesso(projurisFaturamentos, envolvidos)  
         msgSetter.clear({ type: "processing" })
     }
     
     async function checkIfProcessoAlreadyExists(numeroDoProcesso) {
+        msgSetter.setSingleProcessingMsg("Verificando se o processo já está cadastrado..." )
         const response = await fetchProjurisInfo(endPoints.buscarProcessoPorNumero + numeroDoProcesso)
         const result = await extractOptionsArray(response)
-        if (result.length > 0) return result[0].codigoProcesso
-        return false
+        if (result.length > 0) throw new ProcessoAlreadyExistsException(codigoProcessoIfExists, numeroDoProcesso, msgSetter)
     }
     
     async function ensurePeopleExists(partes) {
@@ -47,6 +41,8 @@ export default function useProjurisCreator(msgSetter) {
         const findAllPeopleResponses = await Promise.all(findPeopleResponsePromises)
         const findAllPeopleMatches = await Promise.all(findAllPeopleResponses
             .map(async response => await extractOptionsArray(response)))
+        let createdPersons = 0
+        let foundPersons = 0
         const projurisFormattedEnvolvidos = await Promise.all(
             findAllPeopleMatches.map(async (matchesForEnvolvido, index) => {
             const envolvido = partesWithoutDuplicates[index]
@@ -54,6 +50,7 @@ export default function useProjurisCreator(msgSetter) {
                 || (matchesForEnvolvido.length === 0)
             if (personNotFound) {
                 const response = await createPessoa(envolvido)
+                ++createdPersons
                 msgSetter.setSingleProcessingMsg(`Pessoas: ${index + 1} de ${qtdEnvolvidos}`)
                 return response
             }
@@ -62,11 +59,13 @@ export default function useProjurisCreator(msgSetter) {
                 codigoPessoa: matchesForEnvolvido[0].codigoPessoa,
                 nome: matchesForEnvolvido[0].nome,
             }
+            ++foundPersons
             msgSetter.setSingleProcessingMsg(`Pessoas: ${index + 1} de ${qtdEnvolvidos}`)
             return formatEnvolvidoToProjuris(envolvidoData)
         }))
         msgSetter.clear({ type: "processing" })
-        msgSetter.addMsg({ type: "success", msg: `Cadastradas ${qtdEnvolvidos} pessoas` })
+        msgSetter.addMsg({ type: "success", msg: `Já estavam cadastradas ${foundPersons} pessoas` })
+        msgSetter.addMsg({ type: "success", msg: `Cadastradas ${createdPersons} pessoas novas` })
         return projurisFormattedEnvolvidos.filter(response => response != null)
     }
     
@@ -205,7 +204,6 @@ export default function useProjurisCreator(msgSetter) {
     }
     
     async function attachPedidosToProcesso(pedidos) {
-        if (pedidos.values.length == 0) return
         const params = {
             entitiesArray: pedidos,
             endpoint: endPoints.criarPedido + codigoProcesso,
@@ -215,6 +213,27 @@ export default function useProjurisCreator(msgSetter) {
                 update: "Criando pedidos",
                 success: "pedidos criados no processo.",
                 failStart: "Erro ao criar o pedido",
+                failEnd: "no processo. Por favor, crie o registro manualmente."
+            }
+        }
+        await attachEntitiesToProcesso(params)
+    }
+
+    async function adjustAndAttachFaturamentosToProcesso(faturamentos, envolvidos) {
+        const client = envolvidos.filter(parte => parte.flagCliente === true)[0]
+        faturamentos.forEach(faturamento => {
+            faturamento.responsavelPagamento = client
+            solicitacaoRecebimentoPagtoWs.forEach(solicitacao => solicitacao.pessoa = client)
+        })
+        const params = {
+            entitiesArray: faturamentos,
+            endpoint: endPoints.criarLancamentoFinanceiro(codigoProcesso),
+            checkSuccessfulCreation: responseJson => Boolean(responseJson?.chave),
+            getName: faturamento => faturamento.receitaDespesaItemWs.descricao,
+            msgs: {
+                update: "Criando lançamentos financeiros",
+                success: "lançamentos financeiros criados no processo.",
+                failStart: "Erro ao criar o lançamentos financeiro",
                 failEnd: "no processo. Por favor, crie o registro manualmente."
             }
         }

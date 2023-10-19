@@ -1,7 +1,7 @@
-import Drafter from "../../adapters/drafter"
-import envVars from "../../envVars"
-import generateErrMsg from "../../exceptions/error-message-generator"
-import compareWithOperator from "../../utils/utils"
+import Drafter from "../../../adapters/drafter"
+import envVars from "../../../envVars"
+import generateErrMsg from "../../../exceptions/error-message-generator"
+import compareWithOperator from "../../../utils/utils"
 import useGoogleSheets from "./useGoogleSheets"
 
 export default function useProjurisConnector() {
@@ -32,7 +32,8 @@ export default function useProjurisConnector() {
         criarProcesso: "/processo-judicial",
         criarAndamento: "/andamento",
         criarPedido: "/processo/pedido/",
-        criarTarefa: "/tarefa"
+        criarTarefa: "/tarefa",
+        criarLancamentoFinanceiro: (codigoProcesso) => `/processo/${codigoProcesso}/lancamento-financeiro`,
     }
     
     async function getProjurisAuthTokenWithinExpiration() {
