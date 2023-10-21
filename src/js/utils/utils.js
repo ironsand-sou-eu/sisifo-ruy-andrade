@@ -1,48 +1,47 @@
-export const REGEX_CNJ_NUMBER = /(\d{7}-\d{2}.\d{4}.)(\d)(.\d{2}.\d{4})/
+export const REGEX_CNJ_NUMBER = /(\d{7}-\d{2}.\d{4}.)(\d)(.\d{2}.\d{4})/;
 
 export const operators = Object.freeze({
-    sensitiveStrictEquality: "sensitiveStrictEquality",
-    insensitiveStrictEquality: "insensitiveStrictEquality",
-    insentiviveIncludes: "insentiviveIncludes",
-    includes: "includes",
-    numericEquality: "numericEquality"
-})
+  sensitiveStrictEquality: "sensitiveStrictEquality",
+  insensitiveStrictEquality: "insensitiveStrictEquality",
+  insentiviveIncludes: "insentiviveIncludes",
+  includes: "includes",
+  numericEquality: "numericEquality",
+});
 
 export default function compareWithOperator(a, operator, b) {
-    if (a === undefined || b === undefined) return false
-    switch (operator) {
+  if (a === undefined || b === undefined) return false;
+  switch (operator) {
     case operators.sensitiveStrictEquality:
-        return a === b
+      return a === b;
     case operators.insensitiveStrictEquality:
-        return a.toString().toLowerCase() === b.toString().toLowerCase()
+      return a.toString().toLowerCase() === b.toString().toLowerCase();
     case operators.insentiviveIncludes:
-        return a.toLowerCase().includes(b.toLowerCase())
+      return a.toLowerCase().includes(b.toLowerCase());
     case operators.includes:
-        return a.includes(b)
+      return a.includes(b);
     case operators.numericEquality:
-        return Number(a) === Number(b)
-    }
+      return Number(a) === Number(b);
+  }
 }
 
 export function debounce(cb, delay = 250) {
-    let timeOut
-    return (...args) => {
-        clearTimeout(timeOut)
-        timeOut = setTimeout(() => {
-            cb(...args)
-        }, delay)
-    }
+  let timeOut;
+  return (...args) => {
+    clearTimeout(timeOut);
+    timeOut = setTimeout(() => {
+      cb(...args);
+    }, delay);
+  };
 }
 
 export function hasErrors(projurisEntitiesArray) {
-    const allErrors = []
-    projurisEntitiesArray.forEach(projurisEntity => {
-        const errorMsgs = projurisEntity.errorMsgs
-        if (errorMsgs && Array.isArray(errorMsgs) && errorMsgs.length > 0) {
-            allErrors.push(...errorMsgs)
-        }
-    })
-    if (allErrors.length === 0) return false
-    return allErrors
+  const allErrors = [];
+  projurisEntitiesArray.forEach((projurisEntity) => {
+    const errorMsgs = projurisEntity.errorMsgs;
+    if (errorMsgs && Array.isArray(errorMsgs) && errorMsgs.length > 0) {
+      allErrors.push(...errorMsgs);
+    }
+  });
+  if (allErrors.length === 0) return false;
+  return allErrors;
 }
-
