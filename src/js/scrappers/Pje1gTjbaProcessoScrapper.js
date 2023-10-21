@@ -7,7 +7,6 @@ import Pje1gTjbaParteScrapper from "./Pje1gTjbaPartesScrapper";
 import { REGEX_CNJ_NUMBER } from "../utils/utils";
 
 class Pje1gTjbaProcessoScrapper {
-  // extends ProcessoSiteScrapper
   static #PJE1G_TJBA_PROCESSO_HOME_PATH =
     "/pje/Processo/ConsultaProcesso/Detalhe/";
   static #PJE1G_TJBA_IGNORE_LIST = [
@@ -29,7 +28,7 @@ class Pje1gTjbaProcessoScrapper {
 
   static checkProcessoHomepage(url) {
     if (
-      this.#PJE1G_TJBA_IGNORE_LIST.some((itemToIgnore) => itemToIgnore === url)
+      this.#PJE1G_TJBA_IGNORE_LIST.some(itemToIgnore => itemToIgnore === url)
     ) {
       return false;
     } else if (!url || !url.includes(this.#PJE1G_TJBA_PROCESSO_HOME_PATH)) {
@@ -68,13 +67,13 @@ class Pje1gTjbaProcessoScrapper {
       this.#getOutrosParticipantes(),
       this.#andamentos,
       this.#getPedidos(),
-      this.#getAudienciaFutura(),
+      this.#getAudienciaFutura()
     );
   }
 
   static #getNumero() {
     const containerNumeroProcesso = document.querySelector(
-      "a.titulo-topo:has(i)",
+      "a.titulo-topo:has(i)"
     );
     const classAndNumeroProcessoString =
       containerNumeroProcesso.firstChild.textContent.trim();
@@ -130,8 +129,8 @@ class Pje1gTjbaProcessoScrapper {
     }
 
     const slowChoice = Array.from(
-      parentElement.querySelectorAll(IterableElementsQuerySelector),
-    ).filter((iElement) => {
+      parentElement.querySelectorAll(IterableElementsQuerySelector)
+    ).filter(iElement => {
       return iElement.textContent
         .toLowerCase()
         .includes(partialTextToSearch.toLowerCase());
@@ -184,10 +183,10 @@ class Pje1gTjbaProcessoScrapper {
     const tipoDeAcaoFullString =
       this.#getValueFollowingCellSearchedByTextContent(params).trim();
     const tipoDeAcaoId = tipoDeAcaoFullString.match(
-      this.#PJE1G_TJBA_ASSUNTO_OU_CLASSE_ID,
+      this.#PJE1G_TJBA_ASSUNTO_OU_CLASSE_ID
     );
     const tipoDeAcaoNome = tipoDeAcaoFullString.match(
-      this.#PJE1G_TJBA_ASSUNTO_OU_CLASSE_NOME,
+      this.#PJE1G_TJBA_ASSUNTO_OU_CLASSE_NOME
     );
     return {
       id: tipoDeAcaoId ? Number(tipoDeAcaoId[0]) : null,
@@ -205,10 +204,10 @@ class Pje1gTjbaProcessoScrapper {
     const causaDePedirFullString =
       this.#getValueFollowingCellSearchedByTextContent(params).trim();
     const causaDePedirId = causaDePedirFullString.match(
-      this.#PJE1G_TJBA_ASSUNTO_OU_CLASSE_ID,
+      this.#PJE1G_TJBA_ASSUNTO_OU_CLASSE_ID
     );
     const causaDePedirNome = causaDePedirFullString.match(
-      this.#PJE1G_TJBA_ASSUNTO_OU_CLASSE_NOME,
+      this.#PJE1G_TJBA_ASSUNTO_OU_CLASSE_NOME
     );
     return {
       id: causaDePedirId ? Number(causaDePedirId[0]) : null,
@@ -277,14 +276,14 @@ class Pje1gTjbaProcessoScrapper {
 
   static #getPartesRequerentes() {
     const requerentes = Pje1gTjbaParteScrapper.fetchParticipantesInfo(
-      tiposParte.requerente,
+      tiposParte.requerente
     );
     return requerentes;
   }
 
   static #getPartesRequeridas() {
     const requeridos = Pje1gTjbaParteScrapper.fetchParticipantesInfo(
-      tiposParte.requerido,
+      tiposParte.requerido
     );
     return requeridos;
   }

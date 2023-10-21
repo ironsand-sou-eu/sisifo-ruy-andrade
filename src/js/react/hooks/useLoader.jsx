@@ -11,7 +11,6 @@ export default function useLoader(setLoading, msgSetter, setFormData) {
     msgSetter
   );
 
-  console.log("Here");
   useEffect(
     debounce(() => {
       if (processoDraftedData) return;
@@ -30,7 +29,6 @@ export default function useLoader(setLoading, msgSetter, setFormData) {
   useEffect(() => {
     if (!processoDraftedData) return;
     setLoading({ scrapping: false, creating: false });
-    console.log({ processoDraftedData });
     if (adaptedInfoHasErrors()) return;
     const {
       projurisProcesso: {
