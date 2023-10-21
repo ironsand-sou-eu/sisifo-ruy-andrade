@@ -1,7 +1,7 @@
 import React from "react"
-import Add from "./Add"
-import Faturamento from "./Faturamento"
-import ProjurisFaturamentoDataStructure from "../../data-structures/ProjurisFaturamentoDataStructure"
+import Add from "../micro/Add"
+import Faturamento from "../micro/Faturamento"
+import ProjurisFaturamentoDataStructure from "../../../data-structures/ProjurisFaturamentoDataStructure"
 
 export default function FaturamentosBox({ faturamentos, bancosList, onChange }) {
     const changingFunctions = {

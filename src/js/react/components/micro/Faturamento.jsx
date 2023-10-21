@@ -1,9 +1,8 @@
 import React from "react"
 import Trash from "./Trash"
-import useProjurisTranslator from "../hooks/useProjurisTranslator"
-import useLocation from "../hooks/useLocation"
+import useProjurisTranslator from "../../hooks/useProjurisTranslator"
+import useLocation from "../../hooks/useLocation"
 import Select from "react-select"
-import { debounce } from "../../utils/utils"
 
 export default function Faturamento({ index, faturamentoItem, bancosList, onChange }) {
     const { insertValueLabel, removeValueLabel } = useProjurisTranslator()

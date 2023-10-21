@@ -1,7 +1,6 @@
 import React from "react"
 
-
-function Parte(props) {
+export default function Parte(props) {
     const lawyerFlag = (props.isLawyer) ? "(adv) " : ""
     return (
         <div className="input-group">
@@ -20,5 +19,3 @@ function Parte(props) {
         </div>
     )
 }
-
-export default Parte

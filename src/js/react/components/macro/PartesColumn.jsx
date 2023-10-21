@@ -1,7 +1,7 @@
 import React from "react"
-import Parte from "./Parte"
+import Parte from "../micro/Parte"
 
-function PartesColumn(props) {
+export default function PartesColumn(props) {
     if (!props.partes) return
 
     function flagParteAsClient(personName, isClient) {
@@ -33,5 +33,3 @@ function PartesColumn(props) {
         </div>
     )
 }
-
-export default PartesColumn

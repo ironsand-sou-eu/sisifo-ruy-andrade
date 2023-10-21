@@ -1,6 +1,6 @@
 import React from "react"
 
-function SelectInput(props) {
+export default function SelectInput(props) {
     return (
         <div className="col-sm-8">
             <div className="inputGroupContainer">
@@ -9,5 +9,3 @@ function SelectInput(props) {
         </div>
     )
 }
-
-export default SelectInput

@@ -1,17 +1,17 @@
-import React, { useEffect } from "react";
+import React from "react";
 import PartesColumn from "./PartesColumn";
-import Text from "./Text";
-import Select from "./Select";
-import Checkbox from "./Checkbox";
-import Textarea from "./Textarea";
 import PedidosBox from "./PedidosBox";
 import FaturamentosBox from "./FaturamentosBox"
-import Button from "./Button";
-import useValidator from "../hooks/useValidator";
-import { operators } from "../../utils/utils";
-import useProjurisConnector from "../hooks/connectors/useProjurisConnector";
+import Text from "../micro/Text";
+import Select from "../micro/Select";
+import Checkbox from "../micro/Checkbox";
+import Textarea from "../micro/Textarea";
+import Button from "../micro/Button";
+import useValidator from "../../hooks/useValidator";
+import { operators } from "../../../utils/utils";
+import useProjurisConnector from "../../hooks/connectors/useProjurisConnector";
 
-function PopupForm({ onSubmit, data, updateData }) {
+export default function PopupForm({ onSubmit, data, updateData }) {
     const { endPoints } = useProjurisConnector()
     const [ warningMessages ] = useValidator(data);
     const filter = {
@@ -208,5 +208,3 @@ function PopupForm({ onSubmit, data, updateData }) {
         </form>
     )
 };
-
-export default PopupForm;

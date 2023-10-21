@@ -1,10 +1,10 @@
 import React, { useContext } from "react"
 import AsyncSelect from "react-select/async"
-import { LoadingContext, MsgSetterContext } from "../App"
-import useProjurisTranslator from "../hooks/useProjurisTranslator"
-import useProjurisConnector from "../hooks/connectors/useProjurisConnector"
+import { LoadingContext, MsgSetterContext } from "../../App"
+import useProjurisTranslator from "../../hooks/useProjurisTranslator"
+import useProjurisConnector from "../../hooks/connectors/useProjurisConnector"
 
-function Select(props) {
+export default function Select(props) {
     const { getGtCrew, loadSimpleOptions } = useProjurisConnector()
     const isLoading = useContext(LoadingContext)
     const msgSetter = useContext(MsgSetterContext)
@@ -45,5 +45,3 @@ function Select(props) {
         </div>
     )
 }
-
-export default Select

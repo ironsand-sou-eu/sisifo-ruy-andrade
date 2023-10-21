@@ -1,6 +1,6 @@
 import React from "react"
 
-function Text({type, value, name, label, placeholder, onChange, isDisabled}) {
+export default function Text({type, value, name, label, placeholder, onChange, isDisabled}) {
     return (
         <div className="col-sm-6">
             <label className="sisifo-label">{label}</label>
@@ -17,5 +17,3 @@ function Text({type, value, name, label, placeholder, onChange, isDisabled}) {
         </div>
     )
 }
-
-export default Text

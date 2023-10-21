@@ -1,6 +1,6 @@
 import React from "react"
 
-function Textarea(props) {
+export default function Textarea(props) {
     return (
         <div className="col-sm-12">
             <label className="sisifo-label">{props.label}</label>
@@ -16,5 +16,3 @@ function Textarea(props) {
         </div>
     )
 }
-
-export default Textarea

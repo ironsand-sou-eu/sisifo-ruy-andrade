@@ -2,7 +2,7 @@ import React from "react"
 import { useEffect } from "react"
 import { useRef } from "react"
 
-function Messenger({ successMsgs, processingMsgs, failureMsgs, scrollable = true }) {
+export default function Messenger({ successMsgs, processingMsgs, failureMsgs, scrollable = true }) {
     const aside = useRef(null)
     const successUl = useRef(null)
     const processingUl = useRef(null)
@@ -44,5 +44,3 @@ function Messenger({ successMsgs, processingMsgs, failureMsgs, scrollable = true
         </aside>
     )
 }
-
-export default Messenger

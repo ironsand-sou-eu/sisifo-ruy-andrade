@@ -2,11 +2,11 @@ import React from "react"
 import Select from "react-select"
 import AsyncSelect from "react-select/async"
 import Trash from "./Trash"
-import useProjurisTranslator from "../hooks/useProjurisTranslator"
-import { operators } from "../../utils/utils.js"
-import { prognosticoOptions } from "../../utils/enumsAndHardcoded"
-import useLocation from "../hooks/useLocation"
-import useProjurisConnector from "../hooks/connectors/useProjurisConnector"
+import useProjurisTranslator from "../../hooks/useProjurisTranslator"
+import { operators } from "../../../utils/utils.js"
+import { prognosticoOptions } from "../../../utils/enumsAndHardcoded"
+import useLocation from "../../hooks/useLocation"
+import useProjurisConnector from "../../hooks/connectors/useProjurisConnector"
 
 export default function Pedido({pedido, index, onChange}) {
     const { removeValueLabel } = useProjurisTranslator()

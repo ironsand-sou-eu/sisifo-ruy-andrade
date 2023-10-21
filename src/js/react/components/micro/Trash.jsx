@@ -1,6 +1,6 @@
 import React from "react"
 
-function Trash(props) {
+export default function Trash(props) {
     return (
         <div className="pointer" onClick={props.onClick}>
             <svg className="one-liner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
@@ -10,5 +10,3 @@ function Trash(props) {
         </div>
     )
 }
-
-export default Trash

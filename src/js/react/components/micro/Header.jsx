@@ -1,6 +1,6 @@
 import React from "react"
 
-function Header() {
+export default function Header() {
     return (
         <header className="centered">
             <img
@@ -10,5 +10,3 @@ function Header() {
         </header>
     )
 }
-
-export default Header

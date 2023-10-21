@@ -1,6 +1,6 @@
 import React from "react"
-import Pedido from "./Pedido"
-import Add from "./Add"
+import Pedido from "../micro/Pedido"
+import Add from "../micro/Add"
 
 export default function PedidosBox({ pedidos, onChange }) {
     const changingFunctions = {

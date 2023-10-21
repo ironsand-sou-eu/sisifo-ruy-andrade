@@ -1,6 +1,6 @@
 import React from "react"
 
-function Checkbox(props) {
+export default function Checkbox(props) {
     return (
         <div className="col-sm-6">
             <label className="sisifo-label">{props.label}</label>
@@ -16,5 +16,3 @@ function Checkbox(props) {
         </div>
     )
 }
-
-export default Checkbox
