@@ -7,7 +7,7 @@ export default function useErrorHandler(processoDraftedData, msgSetter) {
 
   function handleAdaptedInfoErrors() {
     if (!adaptedInfoHasErrors()) return;
-    processoDraftedData.errorMsgs.forEach((errorMsg) => {
+    processoDraftedData.errorMsgs.forEach(errorMsg => {
       msgSetter.addMsg({
         type: "fail",
         msg: errorMsg,

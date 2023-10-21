@@ -4,31 +4,33 @@ import useErrorHandler from "./useErrorHandler";
 import useLocation from "./useLocation";
 
 export default function useLoader(setLoading, msgSetter, setFormData) {
-  const [processoDraftedData, setProcessoDraftedData] = useState({});
+  const [processoDraftedData, setProcessoDraftedData] = useState();
+  const { formatDateToInputString } = useLocation();
   const { adaptedInfoHasErrors } = useErrorHandler(
     processoDraftedData,
-    msgSetter,
+    msgSetter
   );
-  const { formatDateToInputString } = useLocation();
 
+  console.log("Here");
   useEffect(
     debounce(() => {
-      if (processoDraftedData !== null) return;
+      if (processoDraftedData) return;
       chrome.runtime.sendMessage(
         {
           from: "sisifoPopup",
           subject: "query-processo-info-to-show",
         },
-        (response) => {
+        response => {
           setProcessoDraftedData(response);
-        },
+        }
       );
-    }, [processoDraftedData]),
+    }, [processoDraftedData])
   );
 
   useEffect(() => {
-    if (processoDraftedData === null) return;
+    if (!processoDraftedData) return;
     setLoading({ scrapping: false, creating: false });
+    console.log({ processoDraftedData });
     if (adaptedInfoHasErrors()) return;
     const {
       projurisProcesso: {
