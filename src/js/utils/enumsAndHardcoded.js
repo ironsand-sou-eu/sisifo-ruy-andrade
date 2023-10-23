@@ -1,3 +1,6 @@
+export const EMAIL_REGEX =
+  /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g;
+
 export const hardcoded = Object.freeze({
   tipoResponsavelPagamento: "CLIENTE",
   tipoLancamentoFinanceiro: "RECEITA",
@@ -46,6 +49,12 @@ export const tiposParte = Object.freeze({
   assistente: "assistente",
   administrador: "administrador",
   servidor: "servidor",
+});
+
+export const trtInterfacePolosNames = Object.freeze({
+  autor: "ativo",
+  reu: "passivo",
+  outros: "outros",
 });
 
 export const projurisTipoEnvolvidoType = Object.freeze({

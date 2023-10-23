@@ -36,7 +36,7 @@ export function debounce(cb, delay = 250) {
 
 export function hasErrors(projurisEntitiesArray) {
   const allErrors = [];
-  projurisEntitiesArray.forEach((projurisEntity) => {
+  projurisEntitiesArray.forEach(projurisEntity => {
     const errorMsgs = projurisEntity.errorMsgs;
     if (errorMsgs && Array.isArray(errorMsgs) && errorMsgs.length > 0) {
       allErrors.push(...errorMsgs);
@@ -44,4 +44,28 @@ export function hasErrors(projurisEntitiesArray) {
   });
   if (allErrors.length === 0) return false;
   return allErrors;
+}
+
+export async function waitForElement(
+  selector,
+  returnElementSelector = selector
+) {
+  const objectPromise = new Promise(resolve => {
+    if (document.querySelector(selector)) {
+      return resolve(document.querySelector(returnElementSelector));
+    }
+
+    const observer = new MutationObserver(mutations => {
+      if (document.querySelector(selector)) {
+        observer.disconnect();
+        resolve(document.querySelector(returnElementSelector));
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  });
+  return await objectPromise;
 }
