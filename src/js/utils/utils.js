@@ -69,3 +69,33 @@ export async function waitForElement(
   });
   return await objectPromise;
 }
+
+export async function waitForElementToChange(
+  startElement,
+  selector,
+  returnElementSelector = selector
+) {
+  const promise = new Promise(resolve => {
+    if (
+      document.querySelector(selector) &&
+      !startElement.isEqualNode(document.querySelector(selector))
+    ) {
+      return resolve(document.querySelector(returnElementSelector));
+    }
+    const observer = new MutationObserver(mutations => {
+      if (
+        document.querySelector(selector) &&
+        !startElement.isEqualNode(document.querySelector(selector))
+      ) {
+        observer.disconnect();
+        resolve(document.querySelector(returnElementSelector));
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  });
+  return await promise;
+}
