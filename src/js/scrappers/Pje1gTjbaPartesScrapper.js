@@ -21,10 +21,10 @@ class Pje1gTjbaParteScrapper {
 
   static #loadPageCheckpoints() {
     this.#divPoloAtivoTbody = document.querySelector(
-      "#poloAtivo > table > tbody",
+      "#poloAtivo > table > tbody"
     );
     this.#divPoloPassivoTbody = document.querySelector(
-      "#poloPassivo > table > tbody",
+      "#poloPassivo > table > tbody"
     );
   }
 
@@ -36,12 +36,12 @@ class Pje1gTjbaParteScrapper {
       case tiposParte.requerente:
         return this.#getCompletePartes(
           this.#divPoloAtivoTbody,
-          tiposParte.requerente,
+          tiposParte.requerente
         );
       case tiposParte.requerido:
         return this.#getCompletePartes(
           this.#divPoloPassivoTbody,
-          tiposParte.requerido,
+          tiposParte.requerido
         );
       case "outros":
         return [];
@@ -51,14 +51,14 @@ class Pje1gTjbaParteScrapper {
   static #getCompletePartes(partesWrapperTbody, tipoDeParte) {
     const partes = this.#getPartesWithoutEnderecos(
       partesWrapperTbody,
-      tipoDeParte,
+      tipoDeParte
     );
     return partes;
   }
 
   static #getPartesWithoutEnderecos(tbody, tipoDeParte) {
     const partes = [];
-    tbody.querySelectorAll(":scope > tr").forEach((tr) => {
+    tbody.querySelectorAll(":scope > tr").forEach(tr => {
       const parte = new ParteDataStructure();
       const parteString = tr
         .querySelector("td:nth-child(1) > span:nth-child(1) > span")
@@ -80,7 +80,7 @@ class Pje1gTjbaParteScrapper {
     const nameWithoutCpfCnpj = stringWithoutParteType
       .replace(
         /(CPF: \d{3}\x2E\d{3}\x2E\d{3}\x2D\d{2})|(CNPJ: \d{2}.\d{3}.\d{3}\/\d{4}-\d{2})$/,
-        "",
+        ""
       )
       .replace(/ - $/, "");
     const nameWithoutOab = nameWithoutCpfCnpj
@@ -91,7 +91,7 @@ class Pje1gTjbaParteScrapper {
 
   static #getCpfCnpjFromPje1gTjbaParteString(parteString) {
     const cpfCnpj = parteString.match(
-      /(\d{3}\x2E\d{3}\x2E\d{3}\x2D\d{2})|(\d{2}.\d{3}.\d{3}\/\d{4}-\d{2})/,
+      /(\d{3}\x2E\d{3}\x2E\d{3}\x2D\d{2})|(\d{2}.\d{3}.\d{3}\/\d{4}-\d{2})/
     );
     return cpfCnpj ? cpfCnpj[0] : null;
   }
@@ -108,10 +108,7 @@ class Pje1gTjbaParteScrapper {
       parte.noCpfCnpjReason = "Não cadastrado no PJe";
       return;
     }
-    const dashDotSlashStrippedString = cpfCnpj.replaceAll(
-      /(\-)|(\.)|(\/)/g,
-      "",
-    );
+    const dashDotSlashStrippedString = cpfCnpj.replaceAll(/[^\d]/g, "");
     if (cpfCnpj.length === 14 && dashDotSlashStrippedString.length === 11)
       parte.cpf = cpfCnpj;
     if (cpfCnpj.length === 18 && dashDotSlashStrippedString.length === 14)
@@ -121,12 +118,12 @@ class Pje1gTjbaParteScrapper {
   static #pushAdvogadosToParte(parteWrapperTr, parte) {
     const advogadosLists = parteWrapperTr.querySelectorAll(":scope > td > ul");
     const advogadosLis = Array.from(advogadosLists)
-      .map((ulList) => ulList.querySelectorAll(":scope > li"))
+      .map(ulList => ulList.querySelectorAll(":scope > li"))
       .flat()[0];
     let advogado = "";
     parte.advogados = [];
     if (advogadosLis == undefined) return;
-    Array.from(advogadosLis).forEach((li) => {
+    Array.from(advogadosLis).forEach(li => {
       const advString = li
         .querySelector(":scope > small > span > span")
         .textContent.trim();

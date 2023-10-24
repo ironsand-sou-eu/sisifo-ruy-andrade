@@ -28,38 +28,38 @@ class ProjudiTjbaPartesScrapper {
     switch (parteTypeToScrappe) {
       case tiposParte.requerente:
         const requerentesWrapperTd = this.#divPartesTbody.querySelector(
-          ":scope > tr:nth-child(2) > td:nth-child(2)",
+          ":scope > tr:nth-child(2) > td:nth-child(2)"
         );
         const requerentes = this.#getCompletePartes(
           requerentesWrapperTd,
-          tiposParte.requerente,
+          tiposParte.requerente
         );
         return requerentes;
       case tiposParte.requerido:
         const requeridosWrapperTd = this.#divPartesTbody.querySelector(
-          ":scope > tr:nth-child(3) > td:nth-child(2)",
+          ":scope > tr:nth-child(3) > td:nth-child(2)"
         );
         const requeridos = this.#getCompletePartes(
           requeridosWrapperTd,
-          tiposParte.requerido,
+          tiposParte.requerido
         );
         return requeridos;
       default:
         const testemunhasWrapperTd = this.#divPartesTbody.querySelector(
           ":scope > tr:nth-child(4) > td:nth-child(2)",
-          tiposParte.testemunha,
+          tiposParte.testemunha
         );
         const testemunhas = this.#getCompletePartes(
           testemunhasWrapperTd,
-          tiposParte.testemunha,
+          tiposParte.testemunha
         );
         const terceirosWrapperTd = this.#divPartesTbody.querySelector(
           ":scope > tr:nth-child(5) > td:nth-child(2)",
-          tiposParte.terceiro,
+          tiposParte.terceiro
         );
         const terceiros = this.#getCompletePartes(
           terceirosWrapperTd,
-          tiposParte.terceiro,
+          tiposParte.terceiro
         );
         return testemunhas.concat(terceiros);
     }
@@ -67,11 +67,11 @@ class ProjudiTjbaPartesScrapper {
 
   static #getCompletePartes(partesWrapperTd, tipoDeParte) {
     const partesTbody = partesWrapperTd.querySelector(
-      "table.tabelaLista tbody",
+      "table.tabelaLista tbody"
     );
     const partes = this.#getPartesWithoutAdvogadosNorEnderecos(
       partesTbody,
-      tipoDeParte,
+      tipoDeParte
     );
     this.#pushAdvogadosToPartes(partesWrapperTd, partes);
     this.#pushContatosToPartes(partesWrapperTd, partes);
@@ -80,7 +80,7 @@ class ProjudiTjbaPartesScrapper {
 
   static #getPartesWithoutAdvogadosNorEnderecos(tbody, tipoDeParte) {
     const partes = [];
-    tbody.querySelectorAll("tr[id]").forEach((tr) => {
+    tbody.querySelectorAll("tr[id]").forEach(tr => {
       const parte = new ParteDataStructure();
       const projudiId = tr.id.replace("tr", "");
       parte.JudSystemId = projudiId;
@@ -94,10 +94,7 @@ class ProjudiTjbaPartesScrapper {
   }
 
   static #putCpfCnpjToParte(cpfCnpj, parte) {
-    const dashDotSlashStrippedString = cpfCnpj.replaceAll(
-      /(\-)|(\.)|(\/)/g,
-      "",
-    );
+    const dashDotSlashStrippedString = cpfCnpj.replaceAll(/[^\d]/g, "");
     if (cpfCnpj.length === 14 && dashDotSlashStrippedString.length === 11)
       parte.cpf = cpfCnpj;
     if (cpfCnpj.length === 18 && dashDotSlashStrippedString.length === 14)
@@ -116,11 +113,11 @@ class ProjudiTjbaPartesScrapper {
         '"] table[id^="tabelaAdvogadoPartes"] > tbody';
       const advogadosTbody = this.querySelector(advogadosTbodySelector);
       const advogadosTrs = advogadosTbody.querySelectorAll(
-        'tr[class]:not([class="ultimaLinha"])',
+        'tr[class]:not([class="ultimaLinha"])'
       );
       let advogado = "";
       parte.advogados = [];
-      advogadosTrs.forEach((tr) => {
+      advogadosTrs.forEach(tr => {
         const nomeCpfString = tr
           .querySelector("td:nth-child(1)")
           .textContent.trim();
@@ -140,8 +137,8 @@ class ProjudiTjbaPartesScrapper {
   }
 
   static #pushContatosToPartes(partesWrapperTd, partes) {
-    partes.forEach((parte) =>
-      this.#pushContatosToOneParte(parte, partesWrapperTd),
+    partes.forEach(parte =>
+      this.#pushContatosToOneParte(parte, partesWrapperTd)
     );
   }
 
@@ -152,7 +149,7 @@ class ProjudiTjbaPartesScrapper {
       '"] table > tbody';
     const contactsTbody = partesWrapperTd.querySelector(contactsTbodySelector);
     let contactInfo = contactsTbody.querySelector(
-      "tr:nth-child(2) > td",
+      "tr:nth-child(2) > td"
     ).textContent;
     contactInfo = contactInfo.replaceAll(String.fromCharCode(10), "");
     contactInfo = contactInfo.replaceAll(/\s+/g, " ");

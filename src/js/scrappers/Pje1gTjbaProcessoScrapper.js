@@ -154,7 +154,7 @@ class Pje1gTjbaProcessoScrapper {
       nov: "11",
       dez: "12",
     };
-    dateArray[1] = meses[dateArray[1].toLowerCase(0)];
+    dateArray[1] = meses[dateArray[1].toLowerCase()];
     const iso8601DateString = `${dateArray[2]}-${dateArray[1]}-${dateArray[0]}T${timeStr}-03:00`;
     return new Date(iso8601DateString);
   }
