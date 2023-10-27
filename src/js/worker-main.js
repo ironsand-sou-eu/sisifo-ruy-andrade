@@ -1,9 +1,14 @@
 import Drafter from "./adapters/drafter";
+import Exception from "./exceptions/Exception";
 import useGoogleSheets from "./react/hooks/connectors/useGoogleSheets";
 
 const { fetchGoogleToken } = useGoogleSheets();
 
-const tribunalDomainsToScrappe = ["projudi.tjba.jus.br", "pje.tjba.jus.br"];
+const tribunalDomainsToScrappe = [
+  "projudi.tjba.jus.br",
+  "pje.tjba.jus.br",
+  "pje.trt5.jus.br",
+];
 
 chrome.runtime.onInstalled.addListener(() => chrome.action.disable());
 
@@ -22,8 +27,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 function urlEnablesAction(activeUrl) {
-  return tribunalDomainsToScrappe.some((tribunalSiteUrl) =>
-    activeUrl.includes(tribunalSiteUrl),
+  return tribunalDomainsToScrappe.some(tribunalSiteUrl =>
+    activeUrl.includes(tribunalSiteUrl)
   );
 }
 
@@ -36,16 +41,20 @@ function startScrapping(sendResponse) {
         subject: "attempted-start-scrapping",
         tabId: tab.id,
       },
-      async (processoInfo) => {
+      async processoInfo => {
         try {
+          if (typeof processoInfo === "string") {
+            throw new Exception(processoInfo);
+          }
           const token = await fetchGoogleToken();
           const processoInfoAdapter = new Drafter(processoInfo, token);
           sendResponse(await processoInfoAdapter.draftProcessoInfo());
         } catch (err) {
-          const msg = `Ocorreu um erro: ${err.message}<br />${err.stack}`;
+          err = { message: err };
+          const msg = `Ocorreu um erro: ${err.message}<br />${err.stack ?? ""}`;
           sendResponse({ hasErrors: true, errorMsgs: [msg] });
         }
-      },
+      }
     );
   });
 }
