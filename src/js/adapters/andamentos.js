@@ -1,25 +1,144 @@
 import useGoogleSheets from "../react/hooks/connectors/useGoogleSheets";
 
-const RECURSO_CONHECIDO_REGEX = /^(Conhecido o recurso de ).+$/gim;
-const RECURSO_CONHECIDO_EM_PARTE_REGEX =
-  /^(Conhecido em parte o recurso de ).+$/gim;
-const RECURSO_NÃO_CONHECIDO_REGEX = /^(Não recebido o recurso de ).+$/gim;
-const DECORRIDO_PRAZO_DE_ADVS_PROJUDI_REGEX =
-  /^(Decorrido prazo de Advogados de ).+$/gim;
-const DECORRIDO_PRAZO_DE_PROJUDI_REGEX = /^(Decorrido prazo de).+$/gim;
-const LIMINAR_REJEITADA_REGEX = /^(Não Concedida a Medida Liminar).+$/gim;
-const INCLUIDO_EM_PAUTA_REGEX = /^(Incluído em pauta para ).+$/gim;
-const PREEXECUTIVIDADE_REJEITADA_REGEX =
-  /^(Rejeitada a exceção de pré-executividade).+$/gim;
-const E_PROVIDO_REGEX = /^.+(e provido)$/gim;
-const E_PROVIDO_EM_PARTE_REGEX = /^.+(e provido em parte)$/gim;
-const E_NAO_PROVIDO_REGEX = /^.+(e não-provido)$/gim;
+const namesStartAndEndsAdaptations = [
+  {
+    nameStart: "Conhecido o recurso de ",
+    nameEnd: "e provido",
+    adaptedName: "Conhecido o recurso de XXX e provido",
+  },
+  {
+    nameStart: "Conhecido o recurso de ",
+    nameEnd: "e provido em parte",
+    adaptedName: "Conhecido o recurso de XXX e provido em parte",
+  },
+  {
+    nameStart: "Conhecido o recurso de ",
+    nameEnd: "e não-provido",
+    adaptedName: "Conhecido o recurso de XXX e não-provido",
+  },
+  {
+    nameStart: "Conhecido em parte o recurso de ",
+    nameEnd: "e provido",
+    adaptedName: "Conhecido em parte o recurso de XXX e provido",
+  },
+  {
+    nameStart: "Conhecido em parte o recurso de ",
+    nameEnd: "e provido em parte",
+    adaptedName: "Conhecido em parte o recurso de XXX e provido em parte",
+  },
+  {
+    nameStart: "Conhecido em parte o recurso de ",
+    nameEnd: "e não-provido",
+    adaptedName: "Conhecido em parte o recurso de XXX e não-provido",
+  },
+];
 
-const DECORRIDO_PRAZO_DE_PJE_REGEX =
-  /^(Decorrido prazo de ).+( em )[0-9\/ :\.]+$/gim;
-const DISPONIBILIZADO_NO_DJ_ELETRONICO_PJE_REGEX =
-  /^(Disponibilizado no DJ Eletrônico ).+$/gim;
-const PUBLICADO_INTIMACAO_EM_PJE_REGEX = /^(Publicado Intimação em ).+$/gim;
+const namesStartsAdaptations = [
+  { nameStart: "Conclusos os autos ", adaptedName: "Conclusos os autos" },
+  { nameStart: "Decorrido prazo de ", adaptedName: "Decurso de prazo" },
+  {
+    nameStart: "Não Concedida a Medida Liminar",
+    adaptedName: "Não Concedida a Medida Liminar",
+  },
+  {
+    nameStart: "Rejeitada a exceção de pré-executividade",
+    adaptedName: "Rejeitada a exceção de pré-executividade",
+  },
+  { nameStart: "Incluído em pauta", adaptedName: "Incluído em pauta" },
+  {
+    nameStart: "Não recebido o recurso",
+    adaptedName: "Não recebido o recurso",
+  },
+  { nameStart: "Publicado Intimação", adaptedName: "Publicação" },
+  { nameStart: "Publicado(a) o(a)", adaptedName: "Publicação" },
+  { nameStart: "Expedido(a) intimação a(o)", adaptedName: "Intimação" },
+  { nameStart: "Expedido(a) notificação a(o)", adaptedName: "Notificação" },
+  { nameStart: "Expedido(a) mandado", adaptedName: "Mandado assinado(a)" },
+  {
+    nameStart: "Disponibilizado no DJ Eletrônico",
+    adaptedName: "Disponibilizado no DJ Eletrônico",
+  },
+  {
+    nameStart: "Concedida a antecipação de tutela ",
+    adaptedName: "Concedida a Medida Liminar",
+  },
+  {
+    nameStart: "Não concedida a antecipação de tutela ",
+    adaptedName: "Não Concedida a Medida Liminar a XXX",
+  },
+  {
+    nameStart: "Decorrido o prazo de ",
+    adaptedName: "Decurso de prazo",
+  },
+  {
+    nameStart: "Concedida a assistência judiciária gratuita ",
+    adaptedName: "Concedida a Assistência Judiciária Gratuita a parte",
+  },
+  {
+    nameStart: "Não concedida a assistência judiciária gratuita ",
+    adaptedName: "Não concedida a Assistência Judiciária Gratuita a parte",
+  },
+  {
+    nameStart: "Audiência inicial cancelada",
+    adaptedName: "Audiência Inicial Cancelada",
+  },
+  {
+    nameStart: "Audiência inicial designada",
+    adaptedName: "Audiência Inicial Designada",
+  },
+  {
+    nameStart: "Audiência inicial realizada",
+    adaptedName: "Audiência inicial realizada",
+  },
+  {
+    nameStart: "Audiência una cancelada",
+    adaptedName: "Audiência Una Cancelada",
+  },
+  {
+    nameStart: "Audiência una designada",
+    adaptedName: "Audiência Una Designada",
+  },
+  {
+    nameStart: "Audiência una realizada",
+    adaptedName: "Audiência una realizada",
+  },
+  {
+    nameStart: "Audiência instrução cancelada",
+    adaptedName: "Audiência Instrução Cancelada",
+  },
+  {
+    nameStart: "Audiência instrução designada",
+    adaptedName: "Audiência Instrução Designada",
+  },
+  {
+    nameStart: "Audiência instrução realizada",
+    adaptedName: "Audiência instrução realizada",
+  },
+  {
+    nameStart: "Audiência de instrução por videoconferência cancelada",
+    adaptedName: "Audiência de instrução por videoconferência Cancelada",
+  },
+  {
+    nameStart: "Audiência de instrução por videoconferência designada",
+    adaptedName: "Audiência de instrução por videoconferência Designada",
+  },
+  {
+    nameStart: "Audiência de instrução por videoconferência realizada",
+    adaptedName: "Audiência de instrução por videoconferência realizada",
+  },
+  {
+    nameStart: "Audiência instrução e julgamento cancelada",
+    adaptedName: "Audiência Instrução e Julgamento Cancelada",
+  },
+  {
+    nameStart: "Audiência instrução e julgamento designada",
+    adaptedName: "Audiência Instrução e Julgamento Designada",
+  },
+  {
+    nameStart: "Audiência instrução e julgamento realizada",
+    adaptedName: "Audiência instrução e julgamento realizada",
+  },
+];
 
 const {
   fetchGoogleSheetData,
@@ -30,19 +149,19 @@ const {
 export default async function insertAdaptedAndamentoNames(processoInfo, token) {
   const promise = fetchGoogleSheetData("andamentos", token);
   const andamentosSheetValues = await extractValuesFromSheetsPromise(promise);
-  processoInfo.andamentos.forEach((andamento) => {
-    const andamentoWithoutPeopleNames = getAdaptedAndamentoNames(
-      andamento.nomeOriginalSistemaJustica,
+  processoInfo.andamentos.forEach(andamento => {
+    const andamentoWithoutDatesNorPeopleNames = getAdaptedAndamentoNames(
+      andamento.nomeOriginalSistemaJustica
     );
-    const errorParams = {
+    const errorMsgParams = {
       errorKind: "google",
-      missingEntry: andamentoWithoutPeopleNames,
+      missingEntry: andamentoWithoutDatesNorPeopleNames,
       entryType: "andamento",
     };
     const nomeAdaptado = getMatchingEntry(
       andamentosSheetValues,
-      andamentoWithoutPeopleNames,
-      errorParams,
+      andamentoWithoutDatesNorPeopleNames,
+      errorMsgParams
     );
     if (nomeAdaptado.found) {
       andamento.nomeAdaptadoAoCliente = nomeAdaptado.value[1];
@@ -53,49 +172,19 @@ export default async function insertAdaptedAndamentoNames(processoInfo, token) {
 }
 
 function getAdaptedAndamentoNames(nomeAndamento) {
-  if (nomeAndamento.search(RECURSO_CONHECIDO_REGEX) > -1) {
-    let adaptedName =
-      "Conhecido o recurso de XXX" + getAdaptedRecursoNameEnds(nomeAndamento);
-    return adaptedName;
-  } else if (nomeAndamento.search(RECURSO_CONHECIDO_EM_PARTE_REGEX) > -1) {
-    let adaptedName =
-      "Conhecido em parte o recurso de XXX" +
-      getAdaptedRecursoNameEnds(nomeAndamento);
-    return adaptedName;
-  } else if (nomeAndamento.search(RECURSO_NÃO_CONHECIDO_REGEX) > -1) {
-    return "Não recebido o recurso de XXX";
-  } else if (nomeAndamento.search(LIMINAR_REJEITADA_REGEX) > -1) {
-    return "Não Concedida a Medida Liminar a XXX";
-  } else if (nomeAndamento.search(INCLUIDO_EM_PAUTA_REGEX) > -1) {
-    return "Incluído em pauta para XXX";
-  } else if (nomeAndamento.search(PREEXECUTIVIDADE_REJEITADA_REGEX) > -1) {
-    return "Rejeitada a exceção de pré-executividade de XXX";
-  } else if (nomeAndamento.search(DECORRIDO_PRAZO_DE_ADVS_PROJUDI_REGEX) > -1) {
-    return "Decorrido prazo de Advogados de XXX";
-  } else if (nomeAndamento.search(DECORRIDO_PRAZO_DE_PROJUDI_REGEX) > -1) {
-    return "Decorrido prazo de XXX";
-  } else if (nomeAndamento.search(DECORRIDO_PRAZO_DE_PJE_REGEX) > -1) {
-    return "Decorrido prazo de XXX";
-  } else if (
-    nomeAndamento.search(DISPONIBILIZADO_NO_DJ_ELETRONICO_PJE_REGEX) > -1
-  ) {
-    return "Disponbilizado no DJ eletrônico XXX";
-  } else if (nomeAndamento.search(PUBLICADO_INTIMACAO_EM_PJE_REGEX) > -1) {
-    return "Publicado intimação em XXX";
-    // TODO: Identificar qual é o nome do andamento que precisa ser adaptado, pois esqueci
-    // } else if (InStr(1, conteudoCelulaCompleto, "Contadoria") <> 0)) {
-    //     return "Recebidos os autos da contadoria"
-  } else {
-    return nomeAndamento;
-  }
-}
+  const foundSimpleAdaptation = namesStartsAdaptations.filter(adaptation =>
+    nomeAndamento.startsWith(adaptation.nameStart)
+  );
+  if (foundSimpleAdaptation.length !== 0)
+    return foundSimpleAdaptation[0].adaptedName;
 
-function getAdaptedRecursoNameEnds(nomeAndamento) {
-  if (nomeAndamento.search(E_NAO_PROVIDO_REGEX) > -1) {
-    return " e não-provido";
-  } else if (nomeAndamento.search(E_PROVIDO_REGEX) > -1) {
-    return " e provido";
-  } else if (nomeAndamento.search(E_PROVIDO_EM_PARTE_REGEX) > -1) {
-    return " e provido em parte";
-  }
+  const foundCompoundAdaptation = namesStartAndEndsAdaptations.filter(
+    adaptation =>
+      nomeAndamento.startsWith(adaptation.nameStart) &&
+      nomeAndamento.endsWith(adaptation.nameEnd)
+  );
+  if (foundCompoundAdaptation.length !== 0)
+    return foundCompoundAdaptation[0].adaptedName;
+
+  return nomeAndamento;
 }
