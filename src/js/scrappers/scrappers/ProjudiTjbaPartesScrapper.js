@@ -1,6 +1,5 @@
 import ParteDataStructure from "../data-structures/ParteDataStructure";
-import NotProcessoHomepageException from "../exceptions/NotProcessoHomepageException";
-import { tiposParte } from "../utils/enumsAndHardcoded";
+import { tiposParte } from "../utils";
 
 class ProjudiTjbaPartesScrapper {
   static #divPartesTbody;
@@ -13,7 +12,7 @@ class ProjudiTjbaPartesScrapper {
       this.#loadPageCheckpoints();
       return this.#getPartes(parteTypeToScrappe);
     } catch (e) {
-      if (!(e instanceof NotProcessoHomepageException)) console.error(e);
+      console.error(e);
     }
   }
 

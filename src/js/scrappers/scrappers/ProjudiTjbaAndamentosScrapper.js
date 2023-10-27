@@ -1,5 +1,4 @@
 import AndamentoDataStructure from "../data-structures/AndamentoDataStructure";
-import NotProcessoHomepageException from "../exceptions/NotProcessoHomepageException";
 import Exception from "../exceptions/Exception";
 
 class ProjudiTjbaAndamentosScrapper {
@@ -16,13 +15,13 @@ class ProjudiTjbaAndamentosScrapper {
       this.#loadPageCheckpoints();
       return await this.#getAndamentos();
     } catch (e) {
-      if (!(e instanceof NotProcessoHomepageException)) console.error(e);
+      console.error(e);
     }
   }
 
   static #loadPageCheckpoints() {
     this.#divAndamentosTbody = document.querySelector(
-      "#Arquivos > table > tbody",
+      "#Arquivos > table > tbody"
     );
   }
 
@@ -33,7 +32,7 @@ class ProjudiTjbaAndamentosScrapper {
     const andamentos = [];
     let andamento = "";
     const andamentosTrs = this.#divAndamentosTbody.querySelectorAll(
-      "tr:not(tr:first-of-type, tr *)",
+      "tr:not(tr:first-of-type, tr *)"
     );
     for (const tr of andamentosTrs) {
       andamento = new AndamentoDataStructure();
@@ -48,7 +47,7 @@ class ProjudiTjbaAndamentosScrapper {
         .querySelector("td > table > tbody > tr > td:nth-child(4)")
         .textContent.trim();
       const nomeAndamentoTd = tr.querySelector(
-        "td > table > tbody > tr > td:nth-child(2)",
+        "td > table > tbody > tr > td:nth-child(2)"
       );
       andamento.cancelado = this.#isCancelado(nomeAndamentoTd);
       andamento.nomeOriginalSistemaJustica = nomeAndamentoTd
@@ -83,11 +82,11 @@ class ProjudiTjbaAndamentosScrapper {
 
   static async #getDocumentTextContentIfExists(tr) {
     const documentsRows = tr.querySelectorAll(
-      'td > table ~ span[id^="sub"] > div > div > table > tbody > tr',
+      'td > table ~ span[id^="sub"] > div > div > table > tbody > tr'
     );
     if (!documentsRows) return null;
     let docUri = "";
-    documentsRows.forEach((tr) => {
+    documentsRows.forEach(tr => {
       let a = tr.querySelector("td:nth-child(4) > a");
       if (a && a.innerText === "online.html") docUri = a.href;
     });
@@ -101,7 +100,7 @@ class ProjudiTjbaAndamentosScrapper {
     const response = await fetch(uri, { method: "GET" });
     if (!response.ok)
       throw new Exception(
-        `Não foi possível coletar de forma automática o conteúdo do andamento. Erro ${response.statusText}`,
+        `Não foi possível coletar de forma automática o conteúdo do andamento. Erro ${response.statusText}`
       );
     const arrBuffer = await response.arrayBuffer();
     const charCodesArray = new Uint8Array(arrBuffer);
@@ -122,11 +121,11 @@ class ProjudiTjbaAndamentosScrapper {
   static #stripScriptTagsFromHtmlString(htmlString) {
     const contentScriptTagsStrippedHtml = htmlString.replaceAll(
       this.#HTML_SCRIPT_TAG_WITH_CONTENT_REGEX,
-      "",
+      ""
     );
     return contentScriptTagsStrippedHtml.replaceAll(
       this.#HTML_SELF_ENCLOSING_SCRIPT_TAG_REGEX,
-      "",
+      ""
     );
   }
 
@@ -151,7 +150,7 @@ class ProjudiTjbaAndamentosScrapper {
 
   static #stripBlankLines(str) {
     const lines = str.split("\n");
-    const nonBlankLines = lines.filter((line) => line.trim() !== "");
+    const nonBlankLines = lines.filter(line => line.trim() !== "");
     return nonBlankLines.join("\n");
   }
 }

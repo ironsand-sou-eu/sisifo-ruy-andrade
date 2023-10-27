@@ -1,5 +1,4 @@
 import AndamentoDataStructure from "../data-structures/AndamentoDataStructure";
-import NotProcessoHomepageException from "../exceptions/NotProcessoHomepageException";
 import Pje1gTjbaProcessoScrapper from "./Pje1gTjbaProcessoScrapper";
 
 class Pje1gTjbaAndamentosScrapper {
@@ -16,13 +15,13 @@ class Pje1gTjbaAndamentosScrapper {
       const andamentos = await this.#getAndamentos();
       return andamentos;
     } catch (e) {
-      if (!(e instanceof NotProcessoHomepageException)) console.error(e);
+      console.error(e);
     }
   }
 
   static #loadPageCheckpoints() {
     this.#divTimeline = document.getElementById(
-      "divTimeLine:eventosTimeLineElement",
+      "divTimeLine:eventosTimeLineElement"
     );
   }
 
@@ -32,7 +31,7 @@ class Pje1gTjbaAndamentosScrapper {
 
   static async #getAndamentos() {
     const andamentosMediaDivs = this.#divTimeline.querySelectorAll(
-      ":scope > .media:not(.data)",
+      ":scope > .media:not(.data)"
     );
     const andamentos = [];
     for (const mediaDiv of andamentosMediaDivs) {
@@ -96,7 +95,7 @@ class Pje1gTjbaAndamentosScrapper {
     const dateString = this.#findDateSibling(mediaDiv).textContent.trim();
     return Pje1gTjbaProcessoScrapper.getDateFromPjeTjbaDateString(
       dateString,
-      horaAndamento,
+      horaAndamento
     );
   }
 
@@ -114,10 +113,10 @@ class Pje1gTjbaAndamentosScrapper {
         : filename;
     }
     const titleDivs = bodyBoxDiv.querySelectorAll(
-      ":scope > :not(.anexos, .col-sm-12)",
+      ":scope > :not(.anexos, .col-sm-12)"
     );
-    const titles = Array.from(titleDivs).map((titleDiv) =>
-      titleDiv.querySelector("span").textContent.trim(),
+    const titles = Array.from(titleDivs).map(titleDiv =>
+      titleDiv.querySelector("span").textContent.trim()
     );
     return titles[0];
   }
@@ -132,7 +131,7 @@ class Pje1gTjbaAndamentosScrapper {
     if (this.#isPdf(documentAnchorElement)) return null;
     documentAnchorElement.click();
     const contentDoc = await this.#waitPageLoad("#frameHtml");
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await new Promise(resolve => setTimeout(resolve, 250));
     if (this.#isPjeDocumentLandingPageBug(contentDoc)) return null;
     else return this.#getDocumentTextContent(contentDoc);
   }
@@ -148,7 +147,7 @@ class Pje1gTjbaAndamentosScrapper {
     let bodyLength;
     let iframe;
     while (!readystateComplete || bodyLengthChanged) {
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise(resolve => setTimeout(resolve, 350));
       iframe = document.querySelector(iframeDocSelector);
       readystateComplete = iframe?.contentDocument?.readyState === "complete";
       bodyLengthChanged =
@@ -176,11 +175,11 @@ class Pje1gTjbaAndamentosScrapper {
   static #stripScriptTagsFromHtmlString(htmlString) {
     const contentScriptTagsStrippedHtml = htmlString.replaceAll(
       this.#HTML_SCRIPT_TAG_WITH_CONTENT_REGEX,
-      "",
+      ""
     );
     return contentScriptTagsStrippedHtml.replaceAll(
       this.#HTML_SELF_ENCLOSING_SCRIPT_TAG_REGEX,
-      "",
+      ""
     );
   }
 
@@ -192,7 +191,7 @@ class Pje1gTjbaAndamentosScrapper {
 
   static #stripBlankLines(str) {
     const lines = str.split("\n");
-    const nonBlankLines = lines.filter((line) => line.trim() !== "");
+    const nonBlankLines = lines.filter(line => line.trim() !== "");
     return nonBlankLines.join("\n");
   }
 }

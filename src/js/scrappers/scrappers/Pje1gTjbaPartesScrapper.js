@@ -1,6 +1,5 @@
 import ParteDataStructure from "../data-structures/ParteDataStructure";
-import NotProcessoHomepageException from "../exceptions/NotProcessoHomepageException";
-import { tiposParte } from "../utils/enumsAndHardcoded";
+import { tiposParte } from "../utils";
 
 class Pje1gTjbaParteScrapper {
   static #PJE_OAB_REGEX = /OAB [A-Z]{2}\d{4,}/;
@@ -15,7 +14,7 @@ class Pje1gTjbaParteScrapper {
       this.#loadPageCheckpoints();
       return this.#getPartes(parteTypeToScrappe);
     } catch (e) {
-      if (!(e instanceof NotProcessoHomepageException)) console.error(e);
+      console.error(e);
     }
   }
 

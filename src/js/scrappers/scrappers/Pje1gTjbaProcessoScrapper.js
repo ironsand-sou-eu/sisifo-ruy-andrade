@@ -1,10 +1,9 @@
 import ProcessoDataStructure from "../data-structures/ProcessoDataStructure";
 import UnidadeJurisdicionalDataStructure from "../data-structures/UnidadeJurisdicionalDataStructure";
 import NotProcessoHomepageException from "../exceptions/NotProcessoHomepageException";
-import { tiposParte } from "../utils/enumsAndHardcoded";
 import Pje1gTjbaAndamentosScrapper from "./Pje1gTjbaAndamentosScrapper";
 import Pje1gTjbaParteScrapper from "./Pje1gTjbaPartesScrapper";
-import { REGEX_CNJ_NUMBER } from "../utils/utils";
+import { tiposParte, REGEX_CNJ_NUMBER } from "../utils";
 
 class Pje1gTjbaProcessoScrapper {
   static #PJE1G_TJBA_PROCESSO_HOME_PATH =
@@ -22,7 +21,7 @@ class Pje1gTjbaProcessoScrapper {
       this.#loadPageCheckpoints();
       return await this.#ScrappeProcessoInfo();
     } catch (e) {
-      if (!(e instanceof NotProcessoHomepageException)) console.error(e);
+      console.error(e);
     }
   }
 

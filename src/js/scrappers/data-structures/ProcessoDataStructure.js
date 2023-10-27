@@ -1,6 +1,3 @@
-import UnidadeJurisdicionalDataStructure from "./UnidadeJurisdicionalDataStructure";
-import ParteDataStructure from "./ParteDataStructure";
-
 class ProcessoDataStructure {
   constructor(
     numero,
@@ -23,7 +20,7 @@ class ProcessoDataStructure {
     andamentos,
     pedidos,
     audienciaFutura,
-    errorMsgs = [],
+    errorMsgs = []
   ) {
     Object.assign(this, {
       numero,

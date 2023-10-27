@@ -1,12 +1,11 @@
 import ProcessoDataStructure from "../data-structures/ProcessoDataStructure";
 import UnidadeJurisdicionalDataStructure from "../data-structures/UnidadeJurisdicionalDataStructure";
 import NotProcessoHomepageException from "../exceptions/NotProcessoHomepageException";
-import { sistemas, tiposParte } from "../utils/enumsAndHardcoded";
+import { sistemas, tiposParte } from "../utils";
 import ProjudiTjbaAndamentosScrapper from "./ProjudiTjbaAndamentosScrapper";
 import ProjudiTjbaPartesScrapper from "./ProjudiTjbaPartesScrapper";
 
 class ProjudiTjbaProcessoScrapper {
-  // extends ProcessoSiteScrapper
   static #PROJUDI_TJBA_PROCESSO_HOME_PATH =
     "/projudi/listagens/DadosProcesso?numeroProcesso=";
   static #PROJUDI_TJBA_IGNORE_LIST = [
@@ -33,9 +32,7 @@ class ProjudiTjbaProcessoScrapper {
 
   static checkProcessoHomepage(url) {
     if (
-      this.#PROJUDI_TJBA_IGNORE_LIST.some(
-        (itemToIgnore) => itemToIgnore === url,
-      )
+      this.#PROJUDI_TJBA_IGNORE_LIST.some(itemToIgnore => itemToIgnore === url)
     ) {
       return false;
     } else if (!url || !url.includes(this.#PROJUDI_TJBA_PROCESSO_HOME_PATH)) {
@@ -75,14 +72,14 @@ class ProjudiTjbaProcessoScrapper {
       this.#getOutrosParticipantes(),
       this.#andamentos,
       this.#getPedidos(),
-      this.#getAudienciaFutura(),
+      this.#getAudienciaFutura()
     );
     return processoInfo;
   }
 
   static #getNumero() {
     const linkNumeroProcesso = this.#divPartes.querySelector(
-      `a[href*="${this.#PROJUDI_TJBA_PROCESSO_HOME_PATH}"]`,
+      `a[href*="${this.#PROJUDI_TJBA_PROCESSO_HOME_PATH}"]`
     );
     const numProcesso = linkNumeroProcesso.textContent;
     // TODO: Validar número CNJ com RegEx ou lançar exceção
@@ -95,7 +92,7 @@ class ProjudiTjbaProcessoScrapper {
 
   static #getUrl() {
     const linkNumeroProcesso = this.#divPartes.querySelector(
-      `a[href*="${this.#PROJUDI_TJBA_PROCESSO_HOME_PATH}"]`,
+      `a[href*="${this.#PROJUDI_TJBA_PROCESSO_HOME_PATH}"]`
     );
     const url = new URL(linkNumeroProcesso.href);
     return url;
@@ -143,8 +140,8 @@ class ProjudiTjbaProcessoScrapper {
     }
 
     const slowChoice = Array.from(
-      parentElement.querySelectorAll(IterableElementsQuerySelector),
-    ).filter((iElement) => {
+      parentElement.querySelectorAll(IterableElementsQuerySelector)
+    ).filter(iElement => {
       return iElement.textContent
         .toLowerCase()
         .includes(partialTextToSearch.toLowerCase());
@@ -159,7 +156,7 @@ class ProjudiTjbaProcessoScrapper {
       .replaceAll(/(de )|(às )|( h)/g, "");
     const dateStrDividedBySpaces = dateStrWithoutPrepositions.replaceAll(
       ":",
-      " ",
+      " "
     );
     const dateArray = dateStrDividedBySpaces.split(" ");
     const meses = {
@@ -184,7 +181,7 @@ class ProjudiTjbaProcessoScrapper {
     const minute = String(dateArray[4]).padStart(2, "0");
     const second = String(dateArray[5] ?? "00").padStart(2, "0");
     return new Date(
-      `${year}-${month}-${day}T${hour}:${minute}:${second}${timeDiffFromGmt}`,
+      `${year}-${month}-${day}T${hour}:${minute}:${second}${timeDiffFromGmt}`
     );
   }
 
@@ -217,7 +214,7 @@ class ProjudiTjbaProcessoScrapper {
     const tipoDeAcaoStringArray = projudiTipoDeAcaoString
       .split(" « ")
       .reverse();
-    return tipoDeAcaoStringArray.map((tipoAcao) => {
+    return tipoDeAcaoStringArray.map(tipoAcao => {
       return { id: undefined, valor: tipoAcao.trim() };
     });
   }
@@ -234,7 +231,7 @@ class ProjudiTjbaProcessoScrapper {
     const causaDePedirStringArray = projudiCausaDePedirString
       .split(" « ")
       .reverse();
-    return causaDePedirStringArray.map((causaPedir) => {
+    return causaDePedirStringArray.map(causaPedir => {
       return { id: undefined, valor: causaPedir.trim() };
     });
   }
@@ -308,14 +305,14 @@ class ProjudiTjbaProcessoScrapper {
 
   static #getPartesRequerentes() {
     const requerentes = ProjudiTjbaPartesScrapper.fetchParticipantesInfo(
-      tiposParte.requerente,
+      tiposParte.requerente
     );
     return requerentes;
   }
 
   static #getPartesRequeridas() {
     const requeridos = ProjudiTjbaPartesScrapper.fetchParticipantesInfo(
-      tiposParte.requerido,
+      tiposParte.requerido
     );
     return requeridos;
   }
@@ -340,7 +337,7 @@ class ProjudiTjbaProcessoScrapper {
       this.#getElementFollowingCellSearchedByTextContent(params);
     if (!pedidosTd) return null;
     const pedidos = [];
-    pedidosTd.querySelectorAll("table > tbody > tr").forEach((tr) => {
+    pedidosTd.querySelectorAll("table > tbody > tr").forEach(tr => {
       pedidos.push(tr.innerText);
     });
     return pedidos;
@@ -350,11 +347,11 @@ class ProjudiTjbaProcessoScrapper {
     const audienciaRelatedAndamentos =
       this.#filterAudienciaConcerningAndamentos(this.#andamentos);
     const lastRelevantAudiencia = this.#getLastAudienciaOrNullIfCancelled(
-      audienciaRelatedAndamentos,
+      audienciaRelatedAndamentos
     );
     if (!lastRelevantAudiencia) return null;
     const audienciaProjudiDateString = lastRelevantAudiencia.observacao.match(
-      this.#PROJUDI_EXTENDED_DATE_REGEX,
+      this.#PROJUDI_EXTENDED_DATE_REGEX
     )[0];
     const audienciaFutura = {
       ...lastRelevantAudiencia,
@@ -365,12 +362,12 @@ class ProjudiTjbaProcessoScrapper {
 
   static #filterAudienciaConcerningAndamentos(andamentosArray) {
     const audienciaRelatedAndamentos = andamentosArray.filter(
-      (andamento) =>
+      andamento =>
         andamento &&
         andamento.nomeOriginalSistemaJustica
           .toLowerCase()
           .includes("audiência") &&
-        !andamento.cancelado,
+        !andamento.cancelado
     );
     return audienciaRelatedAndamentos;
   }
@@ -379,7 +376,7 @@ class ProjudiTjbaProcessoScrapper {
     const lastRelevantAudiencia =
       audienciasUniverse[audienciasUniverse.length - 1];
     return lastRelevantAudiencia.observacao.search(
-      this.#PROJUDI_EXTENDED_DATE_REGEX,
+      this.#PROJUDI_EXTENDED_DATE_REGEX
     ) === -1
       ? null
       : lastRelevantAudiencia;
