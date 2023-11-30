@@ -14,8 +14,9 @@ chrome.runtime.onInstalled.addListener(() => chrome.action.disable());
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.from === "sisifoContent" && msg.url) {
-    if (urlEnablesAction(msg.url)) chrome.action.enable();
-    else chrome.action.disable();
+    if (urlEnablesAction(msg.url) && sender.tab) {
+      chrome.action.enable(sender.tab.id);
+    }
     sendResponse("dummy message to avoid error logging");
   } else if (
     msg.from === "sisifoPopup" &&
@@ -43,8 +44,12 @@ function startScrapping(sendResponse) {
       },
       async processoInfo => {
         try {
-          if (typeof processoInfo === "string") {
-            throw new Exception(processoInfo);
+          if (!processoInfo) {
+            throw new Error(
+              "Talvez você não esteja na página inicial de um processo."
+            );
+          } else if (typeof processoInfo === "string") {
+            throw new Error(processoInfo);
           }
           const token = await fetchGoogleToken();
           const processoInfoAdapter = new Drafter(processoInfo, token);
